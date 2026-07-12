@@ -13,8 +13,7 @@ from config import Config
 from utils.logger import logger
 
 def main():
-    config = Config()
-    device = config.DEVICE
+    device = Config.DEVICE
 
     logger.info(f"Device : {device}")
 
@@ -24,13 +23,13 @@ def main():
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=config.BATCH_SIZE,
+        batch_size=Config.BATCH_SIZE,
         shuffle=True
     )
 
     valid_loader = DataLoader(
         valid_dataset,
-        batch_size=config.BATCH_SIZE,
+        batch_size=Config.BATCH_SIZE,
         shuffle=False
     )
 
@@ -53,7 +52,7 @@ def main():
 
     }
 
-    for epoch in range(config.NUM_EPOCHS):
+    for epoch in range(Config.NUM_EPOCHS):
         train_loss, train_accuracy = train_one_epoch(
             model=model,
             dataloader=train_loader,
@@ -73,7 +72,7 @@ def main():
             best_accuracy = valid_accuracy
             save_checkpoint(
                 model,
-                config.MODEL_PATH,
+                Config.MODEL_PATH,
                 epoch,
                 optimizer,
                 valid_loss,
@@ -91,7 +90,7 @@ def main():
         history["valid_accuracy"].append(valid_accuracy)
 
         logger.info(
-            f"Epoch {epoch + 1}/{config.NUM_EPOCHS}"
+            f"Epoch {epoch + 1}/{Config.NUM_EPOCHS}"
         )
 
         logger.info(
