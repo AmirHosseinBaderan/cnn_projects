@@ -4,13 +4,15 @@ from torch.utils.data import DataLoader
 
 from datasets.image_dataset import get_datasets
 from models.cnn import CNN
+from models.resnet import build_resnet
 
 from engine.trainer import train_one_epoch
 from engine.evaluator import validate
 from utils.checkpoint import save_checkpoint
-from utils.visualize import plot_loss,plot_accuracy
+from utils.visualize import plot_loss, plot_accuracy
 from config import Config
 from utils.logger import logger
+
 
 def main():
     device = Config.DEVICE
@@ -33,7 +35,7 @@ def main():
         shuffle=False
     )
 
-    model = CNN().to(device)
+    model = build_resnet().to(device)
 
     criterion = nn.CrossEntropyLoss()
 
@@ -107,6 +109,7 @@ def main():
 
     plot_loss(history)
     plot_accuracy(history)
+
 
 if __name__ == "__main__":
     main()

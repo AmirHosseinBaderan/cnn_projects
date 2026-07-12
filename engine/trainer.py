@@ -1,5 +1,5 @@
 import torch
-from ..utils.metrics import accuracy
+from utils.metrics import accuracy
 
 
 def train_one_epoch(

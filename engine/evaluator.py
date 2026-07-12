@@ -1,5 +1,5 @@
 import torch
-from ..utils.metrics import get_confusion_matrix
+from utils.metrics import get_confusion_matrix
 
 def validate(
     model,
