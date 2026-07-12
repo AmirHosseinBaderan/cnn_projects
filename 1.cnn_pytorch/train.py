@@ -10,12 +10,13 @@ from engine.evaluator import validate
 from utils.checkpoint import save_checkpoint
 from utils.visualize import plot_loss,plot_accuracy
 from config import Config
+from utils.logger import logger
 
 def main():
     config = Config()
     device = config.DEVICE
 
-    print(f"Device : {device}")
+    logger.info(f"Device : {device}")
 
     best_accuracy = 0
 
@@ -79,7 +80,7 @@ def main():
                 valid_accuracy,
             )
 
-            print("best model saved")
+            logger.info("best model saved")
 
         history["train_loss"].append(train_loss)
 
@@ -89,21 +90,19 @@ def main():
 
         history["valid_accuracy"].append(valid_accuracy)
 
-        print("-" * 60)
-
-        print(
+        logger.info(
             f"Epoch {epoch + 1}/{config.NUM_EPOCHS}"
         )
 
-        print(
+        logger.info(
             f"Train Loss      : {train_loss:.4f}"
         )
 
-        print(
+        logger.info(
             f"Validation Loss : {valid_loss:.4f}"
         )
 
-        print(
+        logger.info(
             f"Validation Acc  : {valid_accuracy:.2f}%"
         )
 
