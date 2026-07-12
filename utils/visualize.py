@@ -50,3 +50,24 @@ def plot_accuracy(history):
     plt.grid()
 
     plt.show()
+
+def show_images(dataset, count=8):
+
+    plt.figure(figsize=(12, 4))
+
+    for i in range(count):
+
+        image, label = dataset[i]
+
+        image = image.permute(1, 2, 0)
+
+        plt.subplot(2, 4, i + 1)
+
+        plt.imshow(image)
+
+        plt.title(str(label))
+
+        plt.axis("off")
+
+    plt.tight_layout()
+    plt.show()
