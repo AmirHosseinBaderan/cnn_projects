@@ -73,7 +73,7 @@ def main():
             best_accuracy = valid_accuracy
             save_checkpoint(
                 model,
-                "best_model.pth",
+                config.MODEL_PATH,
                 epoch,
                 optimizer,
                 valid_loss,
