@@ -9,12 +9,11 @@ from engine.trainer import train_one_epoch
 from engine.evaluator import validate
 from utils.checkpoint import save_checkpoint
 from utils.visualize import plot_loss,plot_accuracy
-
+from config import Config
 
 def main():
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() else "cpu"
-    )
+    config = Config()
+    device = config.DEVICE
 
     print(f"Device : {device}")
 
@@ -24,13 +23,13 @@ def main():
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=64,
+        batch_size=config.BATCH_SIZE,
         shuffle=True
     )
 
     valid_loader = DataLoader(
         valid_dataset,
-        batch_size=64,
+        batch_size=config.BATCH_SIZE,
         shuffle=False
     )
 
@@ -43,8 +42,6 @@ def main():
         lr=0.001
     )
 
-    num_epochs = 10
-
     history = {
 
         "train_loss": [],
@@ -55,7 +52,7 @@ def main():
 
     }
 
-    for epoch in range(num_epochs):
+    for epoch in range(config.NUM_EPOCHS):
         train_loss, train_accuracy = train_one_epoch(
             model=model,
             dataloader=train_loader,
@@ -95,7 +92,7 @@ def main():
         print("-" * 60)
 
         print(
-            f"Epoch {epoch + 1}/{num_epochs}"
+            f"Epoch {epoch + 1}/{config.NUM_EPOCHS}"
         )
 
         print(
