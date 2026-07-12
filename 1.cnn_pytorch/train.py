@@ -2,75 +2,116 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from datasets.image_dataset import get_train_dataset, get_test_dataset
+from datasets.image_dataset import get_datasets
 from models.cnn import CNN
+
+from engine.trainer import train_one_epoch
+from engine.evaluator import validate
+from utils.checkpoint import save_checkpoint
+from utils.visualize import plot_loss,plot_accuracy
 
 
 def main():
-    # device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Device is {device}")
-
-    # Dataset
-    train_dataset = get_train_dataset()
-
-    # data loader
-    train_loader = DataLoader(
-        dataset=train_dataset,
-        batch_size=64,
-        shuffle=True,
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
     )
 
-    # Model
+    print(f"Device : {device}")
+
+    best_accuracy = 0
+
+    train_dataset, valid_dataset, _ = get_datasets()
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=64,
+        shuffle=True
+    )
+
+    valid_loader = DataLoader(
+        valid_dataset,
+        batch_size=64,
+        shuffle=False
+    )
+
     model = CNN().to(device)
 
-    # loss function
     criterion = nn.CrossEntropyLoss()
 
-    # optimizer
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=0.001,
+        lr=0.001
     )
 
-    # training
     num_epochs = 10
 
+    history = {
+
+        "train_loss": [],
+        "valid_loss": [],
+
+        "train_accuracy": [],
+        "valid_accuracy": []
+
+    }
+
     for epoch in range(num_epochs):
-
-        model.train()
-
-        running_loss = 0.0
-
-        for images, labels in train_loader:
-            # move to device
-            images = images.to(device)
-            labels = labels.to(device)
-
-            # forward
-            outputs = model(images)
-
-            # loss
-            loss = criterion(outputs, labels)
-
-            # clear gradients
-            optimizer.zero_grad()
-
-            # backpropagation
-            loss.backward()
-
-            # update weights
-            optimizer.step()
-
-            running_loss += loss.item()
-
-        epoch_loss = running_loss / len(train_loader)
-
-        print(
-            f"Epoch [{epoch + 1}/{num_epochs}] "
-            f"Loss : {epoch_loss:.4f}"
+        train_loss, train_accuracy = train_one_epoch(
+            model=model,
+            dataloader=train_loader,
+            criterion=criterion,
+            optimizer=optimizer,
+            device=device,
         )
 
+        valid_loss, valid_accuracy = validate(
+            model=model,
+            dataloader=valid_loader,
+            criterion=criterion,
+            device=device,
+        )
+
+        if valid_accuracy > best_accuracy:
+            best_accuracy = valid_accuracy
+            save_checkpoint(
+                model,
+                "best_model.pth",
+                epoch,
+                optimizer,
+                valid_loss,
+                valid_accuracy,
+            )
+
+            print("best model saved")
+
+        history["train_loss"].append(train_loss)
+
+        history["valid_loss"].append(valid_loss)
+
+        history["train_accuracy"].append(train_accuracy)
+
+        history["valid_accuracy"].append(valid_accuracy)
+
+        print("-" * 60)
+
+        print(
+            f"Epoch {epoch + 1}/{num_epochs}"
+        )
+
+        print(
+            f"Train Loss      : {train_loss:.4f}"
+        )
+
+        print(
+            f"Validation Loss : {valid_loss:.4f}"
+        )
+
+        print(
+            f"Validation Acc  : {valid_accuracy:.2f}%"
+        )
+
+    plot_loss(history)
+    plot_accuracy(history)
 
 if __name__ == "__main__":
     main()
