@@ -12,6 +12,7 @@ from utils.checkpoint import save_checkpoint
 from utils.visualize import plot_loss, plot_accuracy
 from config import Config
 from utils.logger import logger
+from models.factory import ModelFactory
 
 
 def main():
@@ -35,7 +36,11 @@ def main():
         shuffle=False
     )
 
-    model = build_resnet().to(device)
+    model = ModelFactory.create(
+        model_name=Config.MODEL_NAME,
+        num_classes=Config.NUM_CLASSES,
+        pretrained=True
+    ).to(device)
 
     criterion = nn.CrossEntropyLoss()
 
@@ -63,7 +68,7 @@ def main():
             device=device,
         )
 
-        valid_loss, valid_accuracy = validate(
+        valid_loss, valid_accuracy, _ = validate(
             model=model,
             dataloader=valid_loader,
             criterion=criterion,

@@ -1,28 +1,28 @@
 from torchvision.models import (
-    resnet18,
-    ResNet18_Weights
+    efficientnet_b0,
+    EfficientNet_B0_Weights
 )
 
 import torch.nn as nn
 
 
-def build_resnet(
+def build_efficientnet(
     num_classes=10,
     pretrained=True
 ):
 
     weights = (
-        ResNet18_Weights.DEFAULT
+        EfficientNet_B0_Weights.DEFAULT
         if pretrained
         else None
     )
 
-    model = resnet18(
+    model = efficientnet_b0(
         weights=weights
     )
 
-    model.fc = nn.Linear(
-        model.fc.in_features,
+    model.classifier[1] = nn.Linear(
+        model.classifier[1].in_features,
         num_classes
     )
 

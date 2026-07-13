@@ -22,3 +22,4 @@ class Config:
     PIN_MEMORY = True
 
     MODEL_PATH = "checkpoints/best_model.pth"
+    MODEL_NAME = "cnn"
