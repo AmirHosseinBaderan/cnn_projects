@@ -36,7 +36,12 @@ class IntelDataset(Dataset):
                     img_name
                 )
 
-                self.images.append(img_path)
+                self.images.append(
+                    (
+                        img_path,
+                        self.class_to_idx[cls_name]
+                    )
+                )
 
     def __len__(self):
         return len(self.images)
