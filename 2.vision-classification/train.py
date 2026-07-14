@@ -14,6 +14,7 @@ EPOCHS = 10
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
 MODEL_PATH = "checkpoints/model.pth"
+PATIENCE = 5
 
 
 def train():
@@ -58,6 +59,9 @@ def train():
     }
 
     start_epoch = load_checkpoint(MODEL_PATH, model, optimizer)
+
+    early_stopping_counter = 0
+    best_loss = 0
 
     for epoch in range(start_epoch, EPOCHS):
         logger.info(f"start training epoch {epoch + 1}")
@@ -122,6 +126,16 @@ def train():
         history["train_accuracy"].append(epoch_acc)
         history["valid_loss"].append(valid_loss)
         history["valid_accuracy"].append(valid_accuracy)
+
+        if valid_loss < best_loss:
+            best_loss = valid_loss
+            early_stopping_counter = 0
+        else:
+            early_stopping_counter += 1
+
+        if early_stopping_counter >= PATIENCE:
+            logger.info("Early stopping")
+            break
 
 
 def calculate_correct(outputs, labels):
