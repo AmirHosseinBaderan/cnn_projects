@@ -39,7 +39,7 @@ def validate(
             )
 
     epoch_loss = running_loss / total
-    accuracy = correct / total
+    accuracy = running_correct / total
 
     return (
         epoch_loss,
