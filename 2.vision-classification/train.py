@@ -34,7 +34,7 @@ def train():
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=64,
+        batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=4,
         pin_memory=True
@@ -50,6 +50,12 @@ def train():
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",
+        factor=0.5,
+        patience=2
+    )
 
     history = {
         "train_loss": [],
@@ -61,7 +67,8 @@ def train():
     start_epoch = load_checkpoint(MODEL_PATH, model, optimizer)
 
     early_stopping_counter = 0
-    best_loss = 0
+    best_loss = float("inf")
+    best_accuracy = 0
 
     for epoch in range(start_epoch, EPOCHS):
         logger.info(f"start training epoch {epoch + 1}")
@@ -70,7 +77,7 @@ def train():
         running_loss = 0
         running_correct = 0
         running_total = 0
-        best_accuracy = 0
+
         for batch_idx, (images, labels) in enumerate(train_loader):
             images = images.to(device)
             labels = labels.to(device)
@@ -105,6 +112,10 @@ def train():
             criterion=criterion,
             device=device,
         )
+        scheduler.step(valid_loss)
+        logger.info(
+            f"Current LR: {optimizer.param_groups[0]['lr']:.6f}"
+        )
 
         epoch_acc = running_correct / running_total
         epoch_loss = running_loss / running_total
@@ -135,6 +146,9 @@ def train():
 
         if early_stopping_counter >= PATIENCE:
             logger.info("Early stopping")
+            logger.info(
+                f"Validation loss did not improve for {PATIENCE} epochs. Stopping training."
+            )
             break
 
 
