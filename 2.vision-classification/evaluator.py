@@ -10,7 +10,7 @@ def validate(
     model.eval()
 
     running_loss = 0
-    correct = 0
+    running_correct = 0
     total = 0
 
     all_labels = []
@@ -24,12 +24,12 @@ def validate(
             outputs = model(images)
             loss = criterion(outputs, labels)
 
-            running_loss += loss.item()
+            running_loss += loss.item() * labels.size(0)
 
             predicted = torch.argmax(outputs, dim=1)
 
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            running_correct += (predicted == labels).sum().item()
 
             all_labels.extend(
                 labels.cpu().numpy()
@@ -38,11 +38,12 @@ def validate(
                 predicted.cpu().numpy()
             )
 
-    epoch_loss = running_loss / len(dataloader)
-    accuracy = 100 * correct / total
-    cm = get_confusion_matrix(
+    epoch_loss = running_loss / total
+    accuracy = correct / total
+
+    return (
+        epoch_loss,
+        accuracy,
         all_labels,
         all_predictions
     )
-
-    return epoch_loss, accuracy, cm
