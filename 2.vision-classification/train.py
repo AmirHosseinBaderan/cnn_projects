@@ -7,6 +7,13 @@ from models.simple_cnn import SimpleCNN
 import torch
 from utils.logger import logger
 import torch.nn as nn
+from utils.checkpoint import save_checkpoint, load_checkpoint
+from evaluator import validate
+
+EPOCHS = 10
+BATCH_SIZE = 64
+LEARNING_RATE = 0.001
+MODEL_PATH = "checkpoints/model.pth"
 
 
 def train():
@@ -28,56 +35,99 @@ def train():
         train_dataset,
         batch_size=64,
         shuffle=True,
+        num_workers=4,
+        pin_memory=True
     )
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=64,
+        batch_size=BATCH_SIZE,
         shuffle=False,
     )
 
     model = SimpleCNN().to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    for epoch in range(10):
+    history = {
+        "train_loss": [],
+        "valid_loss": [],
+        "train_accuracy": [],
+        "valid_accuracy": [],
+    }
+
+    start_epoch = load_checkpoint(MODEL_PATH, model, optimizer)
+
+    for epoch in range(start_epoch, EPOCHS):
+        logger.info(f"start training epoch {epoch + 1}")
         model.train()
 
         running_loss = 0
-        running_acc = 0
-
-        for images, labels in train_loader:
+        running_correct = 0
+        running_total = 0
+        best_accuracy = 0
+        for batch_idx, (images, labels) in enumerate(train_loader):
             images = images.to(device)
             labels = labels.to(device)
+
+            optimizer.zero_grad()
 
             # forward
             outputs = model(images)
             # loss
             loss = criterion(outputs, labels)
 
-            batch_acc = accuracy(outputs, labels)
-            running_acc += batch_acc
+            correct = calculate_correct(outputs, labels)
 
             # backward
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
+            running_loss += loss.item() * labels.size(0)
+            running_correct += correct
+            running_total += labels.size(0)
 
-        epoch_acc = running_acc / len(train_loader)
-        epoch_loss = running_loss / len(train_loader)
+            if batch_idx % 20 == 0:
+                logger.info(
+                    f"epoch={epoch + 1} "
+                    f"batch={batch_idx}/{len(train_loader)} "
+                    f"loss={loss.item():.4f}"
+                )
 
-        logger.info(f"epoch {epoch}, loss: {epoch_loss}, acc: {epoch_acc}")
+        valid_loss, valid_accuracy, _ = validate(
+            model=model,
+            dataloader=test_loader,
+            criterion=criterion,
+            device=device,
+        )
+
+        epoch_acc = running_correct / running_total
+        epoch_loss = running_loss / running_total
+
+        logger.info(f"epoch {epoch + 1}, loss: {epoch_loss}, acc: {epoch_acc}")
+
+        if valid_accuracy > best_accuracy:
+            best_accuracy = valid_accuracy
+            save_checkpoint(
+                model,
+                path=MODEL_PATH,
+                epoch=epoch,
+                valid_loss=valid_loss,
+                optimizer=optimizer,
+                valid_accuracy=valid_accuracy,
+            )
+
+        history["train_loss"].append(epoch_loss)
+        history["train_accuracy"].append(epoch_acc)
+        history["valid_loss"].append(valid_loss)
+        history["valid_accuracy"].append(valid_accuracy)
 
 
-def accuracy(outputs, labels):
-    _, predicted = torch.max(outputs, dim=1)
-    correct = (predicted == labels).sum().item()
+def calculate_correct(outputs, labels):
+    predicted = outputs.argmax(dim=1)
+    return (predicted == labels).sum().item()
 
-    total = labels.size(0)
-    return correct / total
 
 if __name__ == "__main__":
     train()
