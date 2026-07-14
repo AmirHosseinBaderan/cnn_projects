@@ -29,13 +29,6 @@ image = image.unsqueeze(0)
 with torch.no_grad():
     outputs = model(image.to(device))
 
-probabilities = torch.softmax(
-    outputs,
-    dim=1
-)
-confidence = probabilities.max().item()
-predicted = probabilities.argmax(dim=1)
-
 CLASS_NAMES = [
     "buildings",
     "forest",
@@ -44,10 +37,27 @@ CLASS_NAMES = [
     "sea",
     "street"
 ]
-
-prediction = CLASS_NAMES[
-    predicted.item()
-]
-print(
-    f"{prediction}: {confidence:.2%}"
+probabilities = torch.softmax(
+    outputs,
+    dim=1
 )
+predicted = probabilities.argmax(dim=1)
+prediction = CLASS_NAMES[predicted.item()]
+confidence = probabilities[0, predicted.item()].item()
+
+print(f"{prediction}: {confidence:.2%}")
+
+values, indices = torch.topk(
+    probabilities,
+    k=3,
+    dim=1
+)
+
+print("Top 3 Predictions")
+
+for rank, (score, index) in enumerate(zip(values[0], indices[0]), start=1):
+    print(
+        f"{rank}. "
+        f"{CLASS_NAMES[index.item()]} "
+        f"{score.item():.2%}"
+    )
