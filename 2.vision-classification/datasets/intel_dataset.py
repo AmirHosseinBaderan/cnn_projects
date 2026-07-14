@@ -1,4 +1,6 @@
 import os
+from collections import Counter
+
 from PIL import Image
 
 from torch.utils.data import Dataset
@@ -55,3 +57,11 @@ class IntelDataset(Dataset):
             image = self.transform(image)
 
         return image, label
+
+    def get_class_name(self, idx):
+        return self.classes[idx]
+
+    def class_distribution(self):
+        labels = [label for _, label in self.images]
+
+        return Counter(labels)
