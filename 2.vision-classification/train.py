@@ -106,7 +106,7 @@ def train():
                     f"loss={loss.item():.4f}"
                 )
 
-        valid_loss, valid_accuracy, _ = validate(
+        valid_loss, valid_accuracy, _, _ = validate(
             model=model,
             dataloader=test_loader,
             criterion=criterion,
