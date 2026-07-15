@@ -23,11 +23,10 @@ print(image.min())
 print(image.max())
 print(image.mean())
 
-gray_scale = to_grayscale(image)
-save_image("samples/noise-image-2.png",image=gray_scale)
-
 
 pipeline = PreprocessingPipeline()
 result = pipeline.process(image)
+
+save_image("samples/noise-image-2.png",image=result)
 
 show_image(result)
