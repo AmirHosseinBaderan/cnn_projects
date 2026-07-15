@@ -1,5 +1,8 @@
+import cv2
+import numpy as np
 from utils.image import load_image,save_image,show_image
-from preprocessing.grayscale import cvtGrayScale
+from preprocessing.grayscale import to_grayscale
+from preprocessing.pipeline import PreprocessingPipeline
 
 path = "samples/img-test.png"
 
@@ -20,5 +23,11 @@ print(image.min())
 print(image.max())
 print(image.mean())
 
-gray_scale = cvtGrayScale(image)
+gray_scale = to_grayscale(image)
 save_image("samples/img-test-gray_scale.jpg",image=gray_scale)
+
+
+pipeline = PreprocessingPipeline()
+result = pipeline.process(image)
+
+show_image(result)
