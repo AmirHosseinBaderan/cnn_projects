@@ -3,14 +3,36 @@ import numpy as np
 from utils.image import load_image, show_image
 from preprocessing.pipeline import PreprocessingPipeline
 from detection.contour_detector import ContourDetector
+from detection.connected_components import ConnectedComponentDetector
 
 contour_detector = ContourDetector()
+connected_component = ConnectedComponentDetector()
 
 
 def bounding_box():
     output = result.copy()
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
+
+        cv2.rectangle(
+            output,
+            (x, y),
+            (x + w, y + h),
+            (255, 255, 255),
+            1
+        )
+
+    show_image(output)
+
+
+def connected_bounding_box():
+    output = result.copy()
+
+    for i in range(1, num_labels):
+        x = stats[i, cv2.CC_STAT_LEFT]
+        y = stats[i, cv2.CC_STAT_TOP]
+        w = stats[i, cv2.CC_STAT_WIDTH]
+        h = stats[i, cv2.CC_STAT_HEIGHT]
 
         cv2.rectangle(
             output,
@@ -42,7 +64,9 @@ image = load_image(path)
 pipeline = PreprocessingPipeline()
 result = pipeline.process(image)
 
-contours = contour_detector.detect(result)
-print(f'Contours detected: {len(contours)}')
 
+num_labels, labels, stats, centroids = connected_component.detect(result)
+connected_bounding_box()
+
+contours = contour_detector.detect(result)
 bounding_box()
