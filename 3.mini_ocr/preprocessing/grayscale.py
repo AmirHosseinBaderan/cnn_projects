@@ -1,19 +1,11 @@
 import numpy as np
 
 
-def cvtGrayScale(image):
-    height, width = image.shape[:2]
+def to_grayscale(image):
+    b = image[:, :, 0].astype(np.float32)
+    g = image[:, :, 1].astype(np.float32)
+    r = image[:, :, 2].astype(np.float32)
 
-    new_image = np.zeros((height, width), np.uint8)
+    gray = 0.114 * b + 0.587 * g + 0.299 * r
 
-    for y in range(height):
-        for x in range(width):
-            b, g, r = image[y, x]
-            gray = int(
-                0.299 * r +
-                0.587 * g +
-                0.114 * b
-            )
-            new_image[y, x] = gray
-
-    return new_image
+    return gray.astype(np.uint8)
