@@ -4,7 +4,7 @@ from utils.image import load_image,save_image,show_image
 from preprocessing.grayscale import to_grayscale
 from preprocessing.pipeline import PreprocessingPipeline
 
-path = "samples/img-test.png"
+path = "samples/noise-image.png"
 
 image = load_image(path)
 print(image.shape)
@@ -24,7 +24,7 @@ print(image.max())
 print(image.mean())
 
 gray_scale = to_grayscale(image)
-save_image("samples/img-test-gray_scale.jpg",image=gray_scale)
+save_image("samples/noise-image-2.png",image=gray_scale)
 
 
 pipeline = PreprocessingPipeline()
