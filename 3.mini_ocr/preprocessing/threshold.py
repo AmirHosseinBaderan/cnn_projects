@@ -40,7 +40,7 @@ def otsu_threshold(image: np.ndarray) -> np.ndarray:
         image,
         0,
         255,
-        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
 
     return output
