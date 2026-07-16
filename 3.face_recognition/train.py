@@ -60,6 +60,7 @@ def train():
         optimizer
     )
     best_loss = float("inf")
+    early_stopping_counter = 0
 
     for epoch in range(
         start_epoch,
@@ -106,6 +107,7 @@ def train():
         )
         # Save best model
         if epoch_loss < best_loss:
+            early_stopping_counter = 0
             best_loss = epoch_loss
             save_checkpoint(
                 model,
@@ -118,6 +120,16 @@ def train():
             logger.info(
                 "Best model saved"
             )
+        else:
+            early_stopping_counter += 1
+
+        if early_stopping_counter >= Config.PATIENCE:
+            logger.info("Early stopping")
+            logger.info(
+                f"Validation loss did not improve for {Config.PATIENCE} epochs. Stopping training."
+            )
+            break
+
 
 if __name__ == "__main__":
     train()
