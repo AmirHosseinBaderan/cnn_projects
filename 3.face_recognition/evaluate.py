@@ -4,6 +4,7 @@ import torch
 from src.model import FaceEmbeddingNet
 from src.config import Config
 from src.checkpoint import load_checkpoint
+from src.calibrator import ThresholdCalibrator
 
 from src.evaluator import (
     get_embedding,
@@ -40,6 +41,7 @@ def evaluate():
     dataset = EvaluationDataset(
         "./data/raw"
     )
+
     same_scores = []
     different_scores = []
 
@@ -67,6 +69,20 @@ def evaluate():
 
         else:
             different_scores.append(score)
+
+    calibrator = ThresholdCalibrator(
+        same_scores,
+        different_scores
+    )
+    threshold, accuracy = calibrator.find_best_threshold()
+
+    logger.info(
+        f"Best Threshold : {threshold:.2f}"
+    )
+
+    logger.info(
+        f"Accuracy : {accuracy:.4f}"
+    )
 
     logger.info("====================")
     logger.info(
