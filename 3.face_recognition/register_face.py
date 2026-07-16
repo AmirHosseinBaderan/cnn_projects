@@ -19,12 +19,12 @@ register = FaceRegister(
     Config.DEVICE
 )
 embedding = register.create_embedding(
-    "./data/register/Ali"
+    "./data/register/Asghar"
 )
 database = FaceDatabase()
 
 database.add_face(
-    "Ali",
+    "Asghar",
     embedding
 )
 print(
