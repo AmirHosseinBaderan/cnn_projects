@@ -1,11 +1,11 @@
 import torch
 
-from .model import FaceEmbeddingNet
-from .config import Config
-from .checkpoint import load_checkpoint
+from src.model import FaceEmbeddingNet
+from src.config import Config
+from src.checkpoint import load_checkpoint
 
-from .database import FaceDatabase
-from .register import FaceRegister
+from src.database import FaceDatabase
+from src.register import FaceRegister
 
 model = FaceEmbeddingNet().to(
     Config.DEVICE
@@ -19,15 +19,13 @@ register = FaceRegister(
     Config.DEVICE
 )
 embedding = register.create_embedding(
-    "./data/register/Amir"
+    "./data/register/Ali"
 )
 database = FaceDatabase()
 
-database.save(
-    embedding,
-    {
-        "0":"Amir"
-    }
+database.add_person(
+    "Ali",
+    embedding
 )
 print(
     "Face Registered"
