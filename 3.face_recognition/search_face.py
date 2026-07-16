@@ -40,35 +40,24 @@ load_checkpoint(
 
 
 
-database = FaceDatabase()
-
-
-embeddings, names = database.load()
-
-
-
+db = FaceDatabase()
+data = db.load()
 search_engine = FaceSearch(
-    embeddings,
-    names
+    data
 )
-
 
 
 image = load_image(
     "./data/test/unknown.jpg"
 )
 
-
-
 query_embedding = get_embedding(
     model,
     image,
     Config.DEVICE
 )
-
 result = search_engine.search(
     query_embedding
 )
-
 
 print(result)
