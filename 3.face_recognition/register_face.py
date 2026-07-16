@@ -23,7 +23,7 @@ embedding = register.create_embedding(
 )
 database = FaceDatabase()
 
-database.add_person(
+database.add_face(
     "Ali",
     embedding
 )
