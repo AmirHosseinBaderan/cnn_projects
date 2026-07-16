@@ -3,34 +3,40 @@ import torch.nn.functional as F
 
 
 class FaceSearch:
-    def __init__(self, embeddings, names):
-        self.embeddings = embeddings
-        self.names = names
+
+
+    def __init__(
+            self,
+            database
+    ):
+        self.database = database
 
     def search(
             self,
             query_embedding,
-            threshold=0.7
+            threshold=0.5
     ):
-        similarities = F.cosine_similarity(
-            query_embedding,
-            self.embeddings
-        )
+        best_person = None
+        best_score = -1
 
-        best_score, index = torch.max(
-            similarities,
-            dim=0
-        )
+        for person, embeddings in self.database.items():
+            for embedding in embeddings:
+                score = F.cosine_similarity(
+                    query_embedding,
+                    embedding
+                ).item()
 
-        score = best_score.item()
+                if score > best_score:
+                    best_score = score
+                    best_person = person
 
-        if score < threshold:
+        if best_score < threshold:
             return {
                 "name": "Unknown",
-                "score": score
+                "score": best_score
             }
 
         return {
-            "name": self.names[str(index.item())],
-            "score": score
+            "name": best_person,
+            "score": best_score
         }
