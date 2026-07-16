@@ -13,3 +13,4 @@ class Config:
         "checkpoints/"
         "face_embedding.pth"
     )
+    PATIENCE=5
