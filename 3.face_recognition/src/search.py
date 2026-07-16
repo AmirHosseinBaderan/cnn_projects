@@ -14,7 +14,7 @@ class FaceSearch:
     def search(
             self,
             query_embedding,
-            threshold=0.5
+            threshold=0.7
     ):
         best_person = None
         best_score = -1
