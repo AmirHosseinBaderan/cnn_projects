@@ -1,17 +1,32 @@
-from facenet_pytorch import MTCNN
 from PIL import Image
+
+import torchvision.transforms as transforms
+from facenet_pytorch import MTCNN
 
 
 class FaceDetector:
 
     def __init__(
             self,
-            device
+            device,
+            image_size=112,
+            threshold=0.90
     ):
+
+        self.threshold = threshold
 
         self.detector = MTCNN(
             keep_all=True,
             device=device
+        )
+
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize(
+                    (image_size, image_size)
+                ),
+                transforms.ToTensor(),
+            ]
         )
 
     def detect(
@@ -21,26 +36,29 @@ class FaceDetector:
 
         image = Image.open(
             image_path
-        )
+        ).convert("RGB")
 
-        boxes, probs = self.detector.detect(
+        boxes, probabilities = self.detector.detect(
             image
         )
 
-        faces = []
+        detections = []
 
         if boxes is None:
-            return faces
+            return detections
 
-        for box, prob in zip(
+        for box, probability in zip(
                 boxes,
-                probs
+                probabilities
         ):
 
-            if prob < 0.90:
+            if probability < self.threshold:
                 continue
 
-            x1, y1, x2, y2 = box.astype(int)
+            x1, y1, x2, y2 = map(
+                int,
+                box
+            )
 
             face = image.crop(
                 (
@@ -51,7 +69,21 @@ class FaceDetector:
                 )
             )
 
-            faces.append(
+            face = self.transform(
                 face
             )
-        return faces
+
+            detections.append(
+                {
+                    "face": face,
+                    "box": (
+                        x1,
+                        y1,
+                        x2,
+                        y2
+                    ),
+                    "confidence": float(probability)
+                }
+            )
+
+        return detections
