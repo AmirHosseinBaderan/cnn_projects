@@ -40,7 +40,7 @@ recognizer = FaceRecognizer(
 
 
 results = recognizer.recognize(
-    "./test/group.jpg"
+    "./data/test/group.jpg"
 )
 
 for result in results:
@@ -49,7 +49,7 @@ for result in results:
 visualizer = FaceVisualizer()
 
 output = visualizer.draw(
-    "./test/group.jpg",
+    "./data/test/group.jpg",
     results
 )
 
