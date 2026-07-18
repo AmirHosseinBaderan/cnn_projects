@@ -1,3 +1,6 @@
+import cv2
+import numpy as np
+
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -10,9 +13,7 @@ class FaceVisualizer:
                 "DejaVuSans.ttf",
                 20
             )
-
         except Exception:
-
             self.font = ImageFont.load_default()
 
     def draw(
@@ -24,7 +25,9 @@ class FaceVisualizer:
 
         image = Image.open(
             image_path
-        ).convert("RGB")
+        ).convert(
+            "RGB"
+        )
 
         draw = ImageDraw.Draw(
             image
@@ -34,9 +37,14 @@ class FaceVisualizer:
 
             x1, y1, x2, y2 = result["box"]
 
+            color = "lime"
+
+            if result["name"] == "Unknown":
+                color = "red"
+
             draw.rectangle(
                 [(x1, y1), (x2, y2)],
-                outline="lime",
+                outline=color,
                 width=3
             )
 
@@ -48,7 +56,7 @@ class FaceVisualizer:
             draw.text(
                 (x1, y1 - 25),
                 text,
-                fill="lime",
+                fill=color,
                 font=self.font
             )
 
@@ -57,3 +65,46 @@ class FaceVisualizer:
         )
 
         return output_path
+
+    def draw_frame(
+            self,
+            frame,
+            results
+    ):
+
+        output = frame.copy()
+
+        for result in results:
+
+            x1, y1, x2, y2 = result["box"]
+
+            if result["name"] == "Unknown":
+                color = (0, 0, 255)
+            else:
+                color = (0, 255, 0)
+
+            cv2.rectangle(
+                output,
+                (x1, y1),
+                (x2, y2),
+                color,
+                2
+            )
+
+            text = (
+                f'{result["name"]} '
+                f'{result["score"]:.2f}'
+            )
+
+            cv2.putText(
+                output,
+                text,
+                (x1, max(y1 - 10, 20)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                color,
+                2,
+                cv2.LINE_AA
+            )
+
+        return output
