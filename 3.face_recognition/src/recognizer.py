@@ -16,38 +16,37 @@ class FaceRecognizer:
         self.search_engine = search_engine
         self.device = device
 
-
     def recognize(
             self,
-            image_path
+            image
     ):
 
         detections = self.detector.detect(
-            image_path
+            image
         )
 
         results = []
 
         for detection in detections:
 
-            face = detection["face"]
-
             embedding = get_embedding(
-                self.model,
-                face,
-                self.device
+                model=self.model,
+                image=detection["face"],
+                device=self.device
             )
 
-            result = self.search_engine.search(
+            search_result = self.search_engine.search(
                 embedding
             )
 
             results.append(
                 {
-                    "name": result["name"],
-                    "score": result["score"],
+                    "name": search_result["name"],
+                    "score": search_result["score"],
                     "box": detection["box"],
-                    "confidence": detection["confidence"]
+                    "confidence": detection["confidence"],
+                    "center": detection["center"],
+                    "size": detection["size"]
                 }
             )
 
