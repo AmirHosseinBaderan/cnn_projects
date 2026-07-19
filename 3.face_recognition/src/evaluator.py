@@ -1,5 +1,19 @@
 import torch
-import torch.nn.functional as F
+import numpy as np
+
+from PIL import Image
+
+import torchvision.transforms as transforms
+
+
+transform = transforms.Compose(
+    [
+        transforms.Resize(
+            (112, 112)
+        ),
+        transforms.ToTensor(),
+    ]
+)
 
 
 def get_embedding(
@@ -7,32 +21,57 @@ def get_embedding(
         image,
         device
 ):
+
     model.eval()
 
-    with torch.no_grad():
-        if not torch.is_tensor(image):
-            image = torch.tensor(
-                image,
-                dtype=torch.float32
-            )
+    if isinstance(
+            image,
+            Image.Image
+    ):
 
-        image = image.unsqueeze(0)
-        image = image.to(device)
-
-        embedding = model(image)
-
-        embedding = F.normalize(
-            embedding,
-            p=2,
-            dim=1
+        image = transform(
+            image
         )
-    return embedding.cpu()
 
-def similarity(
-        emb1,
-        emb2
-):
-    return F.cosine_similarity(
-        emb1,
-        emb2
-    ).item()
+    elif isinstance(
+            image,
+            np.ndarray
+    ):
+
+        image = Image.fromarray(
+            image
+        )
+
+        image = transform(
+            image
+        )
+
+    elif torch.is_tensor(
+            image
+    ):
+
+        pass
+
+    else:
+
+        raise TypeError(
+            "Unsupported image type."
+        )
+
+    image = image.unsqueeze(
+        0
+    )
+
+    image = image.to(
+        device
+    )
+
+    with torch.no_grad():
+
+        embedding = model(
+            image
+        )
+
+    return embedding.squeeze(
+        0
+    ).cpu()
