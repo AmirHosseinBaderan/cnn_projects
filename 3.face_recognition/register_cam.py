@@ -8,6 +8,7 @@ from src.database import FaceDatabase
 from src.evaluator import get_embedding
 from src.model import FaceEmbeddingNet
 from src.checkpoint import load_checkpoint
+from src.logger import logger
 
 
 CAPTURE_COUNT = 10
@@ -44,18 +45,17 @@ def main():
     camera = cv2.VideoCapture(0)
 
     if not camera.isOpened():
-
-        print("Cannot open camera")
+        logger.error("Cannot open camera")
         return
 
     captured = 0
 
-    print()
-    print("===================================")
-    print(f"Register : {args.name}")
-    print("Press SPACE to capture")
-    print("Press Q to quit")
-    print("===================================")
+    logger.info(f"Register : {args.name}")
+    logger.info("Press SPACE to capture")
+    logger.info("Press Q to quit")
+    
+    cv2.namedWindow("Register Face", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Register Face", 1280, 720)
 
     while captured < CAPTURE_COUNT:
 
@@ -108,9 +108,7 @@ def main():
             continue
 
         if len(detections) != 1:
-
-            print("Exactly one face must be visible.")
-
+            logger.warning("Exactly one face must be visible.")
             continue
 
         embedding = get_embedding(
@@ -123,22 +121,16 @@ def main():
             args.name,
             embedding
         )
-
         captured += 1
-
-        print(
+        logger.info(
             f"Captured {captured}/{CAPTURE_COUNT}"
         )
-
         time.sleep(0.5)
 
     camera.release()
-
     cv2.destroyAllWindows()
 
-    print()
-
-    print("Finished")
+    logger.info("Finished")
 
 
 if __name__ == "__main__":
