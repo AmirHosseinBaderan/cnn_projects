@@ -9,6 +9,7 @@ from src.search import FaceSearch
 from src.recognizer import FaceRecognizer
 from src.visualizer import FaceVisualizer
 from src.checkpoint import load_checkpoint
+from src.logger import logger
 
 
 def main():
@@ -46,22 +47,21 @@ def main():
     camera = cv2.VideoCapture(0)
 
     if not camera.isOpened():
-
-        print("Cannot open camera")
+        logger.error("Cannot open camera")
         return
 
     previous_time = time.time()
     fps = 0.0
+    
+    cv2.namedWindow("Recognition Face", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Recognition Face", 1280, 720)
 
     while True:
-
         ret, frame = camera.read()
-
         if not ret:
             break
 
         results = recognizer.recognize(frame)
-
         frame = visualizer.draw_frame(
             frame,
             results
