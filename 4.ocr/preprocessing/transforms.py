@@ -1,10 +1,9 @@
 from torchvision import transforms
-
-IMAGE_HEIGHT = 32
-IMAGE_WIDTH = 128
+from preprocessing.resize_height import ResizeHeight
+from config import Config
 
 train_transform = transforms.Compose([
-    transforms.Resize((IMAGE_HEIGHT, IMAGE_WIDTH)),
+    ResizeHeight(Config.IMAGE_HEIGHT),
     transforms.ToTensor(),
     transforms.Normalize(
         mean=(0.5,),
@@ -13,7 +12,7 @@ train_transform = transforms.Compose([
 ])
 
 valid_transform = transforms.Compose([
-    transforms.Resize((IMAGE_HEIGHT, IMAGE_WIDTH)),
+    ResizeHeight(Config.IMAGE_HEIGHT),
     transforms.ToTensor(),
     transforms.Normalize(
         mean=(0.5,),
