@@ -40,7 +40,8 @@ class Trainer:
                 dataloader=self.train_loader,
                 criterion=self.criterion,
                 optimizer=self.optimizer,
-                device=self.device
+                device=self.device,
+                epoch=epoch
             )
 
             validation = validate(
