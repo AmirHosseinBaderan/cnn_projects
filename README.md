@@ -4,7 +4,7 @@ A comprehensive collection of four deep learning projects focused on computer vi
 
 ## Projects Overview
 
-This repository contains three progressively advanced projects:
+This repository contains four progressively advanced projects:
 
 | # | Project | Description | Key Concepts |
 | --- |---------|-------------|--------------|
@@ -70,7 +70,7 @@ cnn_projects/
         ├── search.py        # Similarity search
         └── ...
 
-├── 4.ocr/                    # Scene Text Recognition (CRNN + CTC)
+└── 4.ocr/                    # Scene Text Recognition (CRNN + CTC)
     ├── config.py            # Hyperparameters
     ├── main.py              # Architecture sanity check
     ├── train.py             # Training script
