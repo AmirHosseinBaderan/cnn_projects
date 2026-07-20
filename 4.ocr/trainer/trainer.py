@@ -29,11 +29,11 @@ class Trainer:
         self.logger = logger
         self.checkpoint = checkpoint
 
-    def fit(self, epochs):
+    def fit(self, epochs, start_epoch=0):
 
         self.model.to(self.device)
 
-        for epoch in range(epochs):
+        for epoch in range(start_epoch, epochs):
 
             train_loss = train_one_epoch(
                 model=self.model,

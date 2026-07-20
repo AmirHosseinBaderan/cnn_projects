@@ -20,6 +20,7 @@ from trainer.metrics import OCRMetrics
 from trainer.logger import TensorBoardLogger
 from trainer.checkpoint import CheckpointManager
 from trainer.trainer import Trainer
+from utils.logger import logger
 
 
 def train():
@@ -83,13 +84,39 @@ def train():
         vocabulary=vocab
     )
 
-    logger = TensorBoardLogger(
+    tensor_logger = TensorBoardLogger(
         log_dir=Config.LOG_DIR
     )
 
     checkpoint = CheckpointManager(
         checkpoint_dir=Config.CHECKPOINT_DIR
     )
+
+    # Load checkpoint if exists
+    start_epoch = 0
+    last_checkpoint_path = checkpoint.checkpoint_dir / "last.pt"
+    best_checkpoint_path = checkpoint.checkpoint_dir / "best.pt"
+
+    if last_checkpoint_path.exists():
+        start_epoch, _ = CheckpointManager.load(
+            model,
+            optimizer,
+            last_checkpoint_path,
+            device
+        )
+        logger.info(
+            f"Resuming from epoch {start_epoch}"
+        )
+    elif best_checkpoint_path.exists():
+        start_epoch, _ = CheckpointManager.load(
+            model,
+            optimizer,
+            best_checkpoint_path,
+            device
+        )
+        logger.info(
+            f"Resuming from epoch {start_epoch}"
+        )
 
     trainer = Trainer(
         model=model,
@@ -99,12 +126,13 @@ def train():
         optimizer=optimizer,
         device=device,
         metrics=metrics,
-        logger=logger,
+        logger=tensor_logger,
         checkpoint=checkpoint,
     )
 
     trainer.fit(
-        epochs=Config.EPOCHS
+        epochs=Config.EPOCHS,
+        start_epoch=start_epoch
     )
 
 
