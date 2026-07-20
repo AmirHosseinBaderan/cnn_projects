@@ -7,6 +7,7 @@ def train_one_epoch(
     criterion,
     optimizer,
     device,
+    epoch
 ):
     model.train()
 
@@ -14,7 +15,7 @@ def train_one_epoch(
 
     progress_bar = tqdm(
         dataloader,
-        desc="Train",
+        desc=f"Train : {epoch+1}",
         leave=False,
         dynamic_ncols=True,
         unit="batch",
