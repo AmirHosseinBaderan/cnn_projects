@@ -25,9 +25,10 @@ from trainer.trainer import Trainer
 def train():
     device = torch.device(Config.DEVICE)
 
-    num_cores = os.cpu_count()
-    torch.set_num_threads(num_cores)
-    torch.set_num_interop_threads(4) 
+    if device.type == "cpu":
+        compute_threads = max(1, os.cpu_count() - Config.NUM_WORKERS)
+        torch.set_num_threads(compute_threads)
+        torch.set_num_interop_threads(1)
 
     vocab = Vocabulary(
         vocab_file="resources/vocab.json"
