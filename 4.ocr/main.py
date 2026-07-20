@@ -95,3 +95,7 @@ loss = criterion(
 print(loss)
 loss.backward()
 print("Backward ok")
+
+for i in range(5):
+    sample = train_dataset[i]
+    print(sample["image"].shape)
