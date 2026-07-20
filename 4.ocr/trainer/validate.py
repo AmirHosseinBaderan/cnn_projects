@@ -36,7 +36,7 @@ def validate(
 
                 prediction_results = metrics.evaluate_batch(
                     logits=output["logits"],
-                    labels=batch["texts"]
+                    labels=batch["labels"]
                 )
 
     return {
