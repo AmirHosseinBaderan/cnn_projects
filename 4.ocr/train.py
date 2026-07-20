@@ -31,6 +31,12 @@ def train():
         torch.set_num_threads(compute_threads)
         torch.set_num_interop_threads(1)
 
+        logger.info(
+            f"CPU device detected : "
+            f"using {compute_threads} compute threads, "
+            f"{torch.get_num_interop_threads()} interop threads"
+        )
+
     vocab = Vocabulary(
         vocab_file="resources/vocab.json"
     )
@@ -98,26 +104,23 @@ def train():
     best_checkpoint_path = checkpoint.checkpoint_dir / "best.pt"
 
     if last_checkpoint_path.exists():
-        start_epoch, _ = CheckpointManager.load(
+        start_epoch = CheckpointManager.load(
             model,
-            optimizer,
             last_checkpoint_path,
-            device
-        )
-        logger.info(
-            f"Resuming from epoch {start_epoch}"
+            device,
+            optimizer
         )
     elif best_checkpoint_path.exists():
-        start_epoch, _ = CheckpointManager.load(
+        start_epoch = CheckpointManager.load(
             model,
-            optimizer,
             best_checkpoint_path,
-            device
-        )
-        logger.info(
-            f"Resuming from epoch {start_epoch}"
+            device,
+            optimizer
         )
 
+    logger.info(
+        f"Resuming from epoch {start_epoch}"
+    )
     trainer = Trainer(
         model=model,
         train_loader=train_loader,
