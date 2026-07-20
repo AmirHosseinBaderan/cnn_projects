@@ -4,9 +4,13 @@ from config import Config
 from dataset.vocabulary import Vocabulary
 from models.recognizer import CRNN
 from trainer.checkpoint import CheckpointManager
+
 from inference.preprocess import ImagePreprocessor
 from inference.predictor import Predictor
+from inference.line_detector import LineDetector
+
 from preprocessing.transforms import valid_transform
+
 from decoder.greedy import GreedyDecoder
 
 
@@ -31,23 +35,30 @@ class OCREngine:
             num_classes=self.vocabulary.num_classes
         )
 
-        # Load Weights
+        # Load Checkpoint
         CheckpointManager.load(
             model=self.model,
+            optimizer=None,
             path=checkpoint_path,
             device=self.device,
         )
+
+        self.model.to(self.device)
+        self.model.eval()
 
         # Decoder
         self.decoder = GreedyDecoder(
             vocabulary=self.vocabulary
         )
 
+        # Line Detector
+        self.line_detector = LineDetector()
 
         # Image Preprocessor
         self.preprocessor = ImagePreprocessor(
             transform=valid_transform
         )
+
         # Predictor
         self.predictor = Predictor(
             model=self.model,
@@ -59,7 +70,24 @@ class OCREngine:
         self,
         image,
     ) -> str:
-        tensor = self.preprocessor.preprocess(image)
-        text = self.predictor.predict(tensor)
+        # Detect text lines
+        lines = self.line_detector.detect(image)
 
-        return text
+        # No line found
+        if len(lines) == 0:
+            return ""
+
+        texts = []
+
+        # OCR each line
+        for line in lines:
+            tensor = self.preprocessor.preprocess(
+                line["image"]
+            )
+            text = self.predictor.predict(
+                tensor
+            )
+            texts.append(text)
+
+        # Merge lines
+        return "\n".join(texts)
