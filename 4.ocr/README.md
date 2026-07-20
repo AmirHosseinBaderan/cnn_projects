@@ -65,13 +65,13 @@ The magic is in **CTC loss**. It lets the network output a sequence of 32 predic
 
 ### 1. Data Preparation
 - Source: **Synth90k** dataset style — pairs of word images and their text labels
-- Images: Grayscale word images resized to **32×128** pixels
+- Images: Grayscale word images resized to **32×128** pixels (height fixed, width variable)
 - Labels: Text strings (e.g., "HELLO")
-- Split: 90% training, 10% validation (via `dataset/split.py`)
-- Vocabulary: Built from all labels using `dataset/build_vocab.py`, saved to `resources/vocab.json`
+- Split: 90% training, 10% validation
+- Vocabulary: Built from all labels, saved to `resources/vocab.json`
 
 ### 2. Architecture Design
-- **CNN**: 7 convolutional layers progressively reducing spatial dimensions while increasing channels. Final output has height=1, so width=32 becomes our "sequence length."
+- **CNN**: 7 convolutional layers progressively reducing spatial dimensions while increasing channels. Final output has height=1, so width becomes our "sequence length."
 - **LSTM**: 2-layer bidirectional LSTM to capture left-to-right and right-to-left context in the text.
 - **Classifier**: Simple linear layer mapping LSTM outputs to character probabilities.
 - **Loss**: CTC loss handles variable-length outputs without needing character-level annotations.
@@ -89,7 +89,7 @@ Built incrementally:
 
 ### Prerequisites
 ```bash
-pip install torch torchvision opencv-python pillow matplotlib tensorboard tqdm sympy
+pip install torch torchvision opencv-python pillow matplotlib tensorboard tqdm
 ```
 
 ### Step 1: Prepare Data
@@ -97,10 +97,12 @@ Place your images in `data/images/` and create annotation files:
 - `data/train.txt` — each line: `<image_name> <text_label>`
 - `data/valid.txt` — same format for validation
 
-Build vocabulary and split data:
-```bash
-python -c "from dataset.build_vocab import build_vocabulary; build_vocabulary('data/labels.txt', 'resources/vocab.json')"
-python -c "from dataset.split import create_train_valid_split; create_train_valid_split('data/labels.txt', 'data')"
+Build vocabulary:
+```python
+from dataset.vocabulary import Vocabulary
+
+vocab = Vocabulary("resources/vocab.json")
+print(f"Number of classes: {vocab.num_classes}")
 ```
 
 ### Step 2: Train
@@ -119,8 +121,23 @@ This will:
 tensorboard --logdir runs
 ```
 
-### Step 4: Test / Predict
-`predict.py` is a placeholder for future inference. The current way to test is through the validation loop in `trainer/validate.py`, which decodes predictions after each epoch.
+### Step 4: Predict on Single Images
+```python
+from inference.engine import OCREngine
+
+ocr = OCREngine(
+    checkpoint_path="checkpoints/best.pt",
+    vocabulary_file="resources/vocab.json",
+)
+
+text = ocr.predict("data/test/test_5.jpg")
+print(text)
+```
+
+Or use the command-line script:
+```bash
+python predict.py
+```
 
 ### Step 5: Verify Architecture
 ```bash
@@ -137,13 +154,13 @@ This runs a sanity check: it builds the model, does a forward pass on real data,
 ├── config.py                     # Hyperparameters and paths
 ├── main.py                       # Architecture sanity check (end-to-end test)
 ├── train.py                      # Main training entry point
-├── predict.py                    # Placeholder for future inference script
+├── predict.py                    # Standalone inference script
 │
 ├── data/
 │   ├── train.txt                 # Training annotations: image_name + text
 │   ├── valid.txt                 # Validation annotations
 │   ├── labels.txt                # All labels (used to build vocabulary)
-│   └── images/                   # Grayscale word images (32×128)
+│   └── images/                   # Grayscale word images (variable width, height=32)
 │
 ├── resources/
 │   └── vocab.json                # Character-to-index mapping
@@ -153,7 +170,6 @@ This runs a sanity check: it builds the model, does a forward pass on real data,
 │
 ├── models/
 │   ├── recognizer.py             # CRNN: full model (CNN + RNN + Classifier)
-│   ├── detector.py               # Empty placeholder (future: text detection)
 │   └── modules/
 │       ├── cnn.py                # CNNFeatureExtractor: 7-layer conv backbone
 │       ├── sequence.py           # SequenceConverter + BidirectionalLSTM
@@ -162,16 +178,21 @@ This runs a sanity check: it builds the model, does a forward pass on real data,
 ├── dataset/
 │   ├── synth90k.py               # Synth90kDataset: loads image+text pairs
 │   ├── vocabulary.py             # Vocabulary: character encoding/decoding
-│   ├── collate.py                # CTCCollate: custom batch collation for CTC
-│   ├── build_vocab.py            # Utility to generate vocab.json from labels
-│   └── split.py                  # Utility to split labels into train/valid
+│   └── collate.py                # CTCCollate: custom batch collation for CTC
 │
 ├── preprocessing/
 │   ├── transforms.py             # Image resize, tensor conversion, normalization
-│   └── image.py                  # Empty placeholder (future preprocessing)
+│   ├── resize_height.py          # ResizeHeight: maintains aspect ratio by height
+│   └── augmentations.py          # Training augmentations (rotation, blur, noise, etc.)
 │
 ├── decoder/
 │   └── greedy.py                 # GreedyDecoder: argmax + blank/duplicate removal
+│
+├── inference/
+│   ├── engine.py                 # OCREngine: high-level OCR pipeline
+│   ├── predictor.py              # Predictor: model inference wrapper
+│   ├── preprocess.py             # ImagePreprocessor: handles various input types
+│   └── line_detector.py          # LineDetector: finds text lines in images
 │
 ├── trainer/
 │   ├── trainer.py                # Trainer: orchestrates epochs, logging, checkpoints
@@ -201,6 +222,7 @@ This runs a sanity check: it builds the model, does a forward pass on real data,
 - `BATCH_SIZE=32`, `LEARNING_RATE=1e-3`, `EPOCHS=50`
 - `NUM_WORKERS=4`, `PIN_MEMORY`: DataLoader optimizations
 - `CHECKPOINT_DIR="checkpoints"`, `LOG_DIR="runs"`
+- `PREFETCH_FACTOR=4`: DataLoader prefetch optimization
 
 ---
 
@@ -214,12 +236,15 @@ The complete model. It composes three sub-modules:
 - `self.sequence` → `BidirectionalLSTM`: models sequence dependencies
 - `self.classifier` → `CTCClassifier`: outputs character logits
 
-**`forward(self, x)`**
-1. Pass image through CNN → feature map `(B, 512, 1, 32)`
-2. Convert to sequence `(B, 32, 512)`
-3. Pass through BiLSTM → `(B, 32, 512)`
-4. Classify each timestep → `(B, 32, num_classes)` logits
-5. Return dict: `{"logits": logits, "input_lengths": [32]*batch_size}`
+**`forward(self, x, image_widths=None)`**
+1. Pass image through CNN → feature map `(B, 512, 1, W)`
+2. Convert to sequence `(B, W, 512)`
+3. Pass through BiLSTM → `(B, W, 512)`
+4. Classify each timestep → `(B, W, num_classes)` logits
+5. Return dict: `{"logits": logits, "input_lengths": [...]}`
+
+**Variable-Width Support:**
+When `image_widths` is provided, the model computes actual sequence lengths based on the CNN's pooling operations. This allows images of different widths to be processed in the same batch.
 
 ---
 
@@ -228,8 +253,8 @@ The complete model. It composes three sub-modules:
 7-layer convolutional backbone. Each layer progressively reduces height while increasing channel depth.
 
 Layer-by-layer:
-| Layer | Output Size | Operation |
-|-------|-------------|-----------|
+| Layer | Output Size (for 128px width) | Operation |
+|-------|-------------------------------|-----------|
 | Input | 32×128 | Grayscale image |
 | Conv1 | 16×64 | Conv2d(1→64, k=3) + ReLU + MaxPool(2,2) |
 | Conv2 | 8×32 | Conv2d(64→128, k=3) + ReLU + MaxPool(2,2) |
@@ -239,16 +264,19 @@ Layer-by-layer:
 | Conv6 | 2×32 | Conv2d(512→512, k=3) + ReLU + MaxPool(2,1) |
 | Conv7 | 1×32 | Conv2d(512→512, k=(2,1)) + ReLU |
 
-Final output: `(Batch, 512, 1, 32)` — 512 feature channels, 1 pixel height, 32 width positions.
+Final output: `(Batch, 512, 1, W)` — 512 feature channels, 1 pixel height, variable width positions.
+
+**`get_output_lengths(input_widths)`**
+Computes the output sequence length for each input width after pooling operations. Used for variable-width CTC training.
 
 ---
 
 #### `models/modules/sequence.py`
 **Class `SequenceConverter(nn.Module)`**
 Reshapes the 2D CNN output into a 1D sequence for the LSTM.
-- Input: `(B, C, H, W)` = `(B, 512, 1, 32)`
-- Squeeze height: `(B, 512, 32)`
-- Permute: `(B, 32, 512)` — now 32 timesteps, each with 512 features
+- Input: `(B, C, H, W)` = `(B, 512, 1, W)`
+- Squeeze height: `(B, 512, W)`
+- Permute: `(B, W, 512)` — now W timesteps, each with 512 features
 
 **Class `BidirectionalLSTM(nn.Module)`**
 2-layer bidirectional LSTM.
@@ -256,7 +284,7 @@ Reshapes the 2D CNN output into a 1D sequence for the LSTM.
 - `bidirectional=True` → output is 512 (256 forward + 256 backward)
 - `dropout=0.2` between layers
 - `batch_first=True` → input shape `(B, T, C)`
-- Output: `(B, 32, 512)`
+- Output: `(B, W, 512)`
 
 ---
 
@@ -264,8 +292,8 @@ Reshapes the 2D CNN output into a 1D sequence for the LSTM.
 **Class `CTCClassifier(nn.Module)`**
 Simple linear projection from LSTM hidden states to character classes.
 - `nn.Linear(512, num_classes)`
-- Input: `(B, 32, 512)`
-- Output: `(B, 32, num_classes)` raw logits
+- Input: `(B, W, 512)`
+- Output: `(B, W, num_classes)` raw logits
 
 ---
 
@@ -301,30 +329,14 @@ decoded = vocab.decode(encoded)   # "HELLO"
 #### `dataset/collate.py`
 **Class `CTCCollate`**
 Custom collate function for the DataLoader. CTC requires specific tensor formatting:
-- Stacks images into a single tensor `(B, 1, 32, 128)`
+- Stacks images into a single tensor `(B, 1, 32, max_width)`
+- Pads images to the same width within each batch
 - Concatenates all target sequences into one flat tensor
 - Records `target_lengths` (how many characters per sample)
-- Returns: `{"images": Tensor, "targets": Tensor, "labels": List[str], "target_lengths": Tensor}`
+- Records `image_widths` (actual width of each image before padding)
+- Returns: `{"images": Tensor, "targets": Tensor, "labels": List[str], "target_lengths": Tensor, "image_widths": Tensor}`
 
 This is crucial because CTC loss needs flattened targets and their lengths.
-
----
-
-#### `dataset/build_vocab.py`
-**Function `build_vocabulary(labels_file, output_file)`**
-Scans all text labels in the annotation file, collects unique characters, sorts them, and writes `vocab.json` with:
-```json
-{
-    "blank": 0,
-    "characters": ["0", "1", ..., "A", "B", ..., "a", "b", ...]
-}
-```
-
----
-
-#### `dataset/split.py`
-**Function `create_train_valid_split(labels_file, output_dir, train_rate=0.9, seed=42)`**
-Shuffles all samples and splits them into `train.txt` (90%) and `valid.txt` (10%).
 
 ---
 
@@ -332,10 +344,33 @@ Shuffles all samples and splits them into `train.txt` (90%) and `valid.txt` (10%
 
 #### `preprocessing/transforms.py`
 Defines image preprocessing pipelines:
-- `train_transform`: Resize(32×128) → ToTensor → Normalize(mean=0.5, std=0.5)
-- `valid_transform`: Same as train (no augmentation applied)
+- `train_transform`: ResizeHeight(32) → Augmentations → ToTensor → Normalize(mean=0.5, std=0.5)
+- `valid_transform`: ResizeHeight(32) → ToTensor → Normalize(mean=0.5, std=0.5)
 
 Images are normalized to the range [-1, 1].
+
+---
+
+#### `preprocessing/resize_height.py`
+**Class `ResizeHeight`**
+Resizes images to a fixed height while maintaining aspect ratio.
+- `__init__(height)`: Sets target height
+- `__call__(image)`: Resizes image so height = target, width scales proportionally
+
+This is used instead of fixed-size resizing to preserve the natural aspect ratio of text images.
+
+---
+
+#### `preprocessing/augmentations.py`
+Training-time augmentations applied with configurable probability:
+- **RandomRotation**: Rotates image by ±5 degrees
+- **RandomBrightnessContrast**: Adjusts brightness and contrast by ±30%
+- **RandomGaussianNoise**: Adds Gaussian noise with sigma=10
+- **RandomGaussianBlur**: Applies 3×3 Gaussian blur
+- **RandomMotionBlur**: Applies horizontal motion blur
+- **RandomPerspective**: Applies random perspective distortion
+
+All augmentations have a default probability of 0.5 (except noise/blur/perspective at 0.3).
 
 ---
 
@@ -355,13 +390,79 @@ This is the simplest decoding strategy. More advanced strategies like beam searc
 
 ---
 
+### Inference
+
+#### `inference/engine.py`
+**Class `OCREngine`**
+High-level OCR pipeline that combines all inference components.
+- `__init__`: Loads vocabulary, model, checkpoint, decoder, line detector, and preprocessor
+- `predict(image)`:
+  1. Detects text lines in the image using `LineDetector`
+  2. Preprocesses each line using `ImagePreprocessor`
+  3. Runs prediction using `Predictor`
+  4. Returns merged text with newlines between lines
+
+**Example:**
+```python
+from inference.engine import OCREngine
+
+ocr = OCREngine(
+    checkpoint_path="checkpoints/best.pt",
+    vocabulary_file="resources/vocab.json",
+)
+
+# Predict on a file path
+text = ocr.predict("data/test/test_5.jpg")
+
+# Predict on a numpy array (OpenCV image)
+import cv2
+image = cv2.imread("data/test/test_5.jpg")
+text = ocr.predict(image)
+```
+
+---
+
+#### `inference/predictor.py`
+**Class `Predictor`**
+Wrapper around the model and decoder for inference.
+- `__init__`: Receives model, decoder, and device
+- `predict(image)`: Runs model forward pass and decodes logits to text
+- Uses `@torch.no_grad()` for efficient inference
+
+---
+
+#### `inference/preprocess.py`
+**Class `ImagePreprocessor`**
+Handles various input types and applies preprocessing transforms.
+- `__init__(transform)`: Stores the transform pipeline
+- `preprocess(image)`: Accepts file path, `Path`, `numpy.ndarray`, or `PIL.Image`
+  - Converts to grayscale PIL Image
+  - Applies transform
+  - Adds batch dimension `(1, C, H, W)`
+
+---
+
+#### `inference/line_detector.py`
+**Class `LineDetector`**
+Detects text lines in images using OpenCV morphological operations.
+- `__init__`: Configurable `min_height`, `min_width`, `kernel_width`, `kernel_height`
+- `detect(image)`:
+  1. Converts to grayscale if needed
+  2. Applies Otsu thresholding (binary inverse)
+  3. Uses morphological closing to connect characters into lines
+  4. Finds contours and filters by size
+  5. Sorts lines top-to-bottom
+  6. Returns list of `{"image": crop, "bbox": (x1, y1, x2, y2)}`
+
+---
+
 ### Trainer
 
 #### `trainer/trainer.py`
 **Class `Trainer`**
 The main training orchestrator.
 - `__init__`: Receives model, loaders, criterion, optimizer, device, metrics, logger, checkpoint
-- `fit(epochs)`:
+- `fit(epochs, start_epoch=0)`:
   1. Moves model to device
   2. For each epoch:
      - Calls `train_one_epoch` for training
@@ -466,9 +567,22 @@ Main training script. It wires everything together:
 3. Instantiates `CRNN`, `CTCLossWrapper`, Adam optimizer
 4. Creates `OCRMetrics`, `TensorBoardLogger`, `CheckpointManager`
 5. Builds `Trainer` and calls `trainer.fit(epochs=50)`
+6. Supports resuming from checkpoints
 
 #### `predict.py`
-Currently empty. Will be implemented for standalone inference on single images.
+Standalone inference script. Loads a trained model and predicts text on a test image.
+
+```python
+from inference.engine import OCREngine
+
+ocr = OCREngine(
+    checkpoint_path="checkpoints/best.pt",
+    vocabulary_file="resources/vocab.json",
+)
+
+text = ocr.predict("data/test/test_5.jpg")
+print(text)
+```
 
 ---
 
@@ -494,9 +608,9 @@ CTC loss computes the probability of all possible alignments and sums them. This
 
 In scene text, a character may be ambiguous without context from both sides. For example, the character "c" looks similar to "e" or "o". A bidirectional LSTM processes the sequence left-to-right and right-to-left, giving each timestep a richer representation.
 
-### Fixed-Width Input
+### Variable-Width Input
 
-All images are resized to **32×128**. This makes batching easy (no padding needed for images) and gives a fixed sequence length of 32 for the RNN. Variable-length text is handled by CTC, not by the model architecture.
+Images are resized to **height=32** while maintaining aspect ratio. This means widths vary. The `CTCCollate` pads images to the same width within each batch, and the `CRNN` model computes actual sequence lengths using `get_output_lengths()`. Variable-length text is handled by CTC, not by the model architecture.
 
 ---
 
@@ -507,15 +621,16 @@ All images are resized to **32×128**. This makes batching easy (no padding need
 3. **Check Predictions**: In TensorBoard's "OCR Predictions" tab, you can see actual GT vs. predicted text after each epoch. This is more meaningful than loss numbers alone.
 4. **Best Model**: `checkpoints/best.pt` is automatically saved whenever validation loss improves. Use this for inference.
 5. **Character Set**: The vocabulary supports digits (0-9), uppercase (A-Z), and lowercase (a-z) = 62 characters + blank = 63 classes.
+6. **Resume Training**: The trainer automatically resumes from `last.pt` or `best.pt` if they exist.
 
 ---
 
 ## Limitations & Future Work
 
-- `models/detector.py` and `preprocessing/image.py` are empty — future work could add text detection (e.g., EAST, DB) to find text regions in full images before recognition
-- `predict.py` is not implemented yet — a standalone inference script is needed
+- `models/detector.py` does not exist — future work could add text detection (e.g., EAST, DB) to find text regions in full images before recognition
 - No beam search decoding — greedy decoding is simple but not always optimal
-- No data augmentation on text images (rotation, distortion, blur) — could improve robustness
+- Data augmentation is limited to basic transformations — could add more sophisticated text-specific augmentations
+- `inference/loader.py` does not exist — could add a batch inference loader for processing multiple images
 
 ---
 
