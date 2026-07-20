@@ -1,6 +1,9 @@
+import os
 from pathlib import Path
 
 import torch
+
+from utils.logger import logger
 
 
 class CheckpointManager:
@@ -42,7 +45,7 @@ class CheckpointManager:
             self.checkpoint_dir / "best.pt"
         )
 
-        print(
+        logger.info(
             f"Best model saved "
             f"(loss={loss:.4f})"
         )
@@ -74,13 +77,24 @@ class CheckpointManager:
     @staticmethod
     def load(
             model,
-            optimizer,
             path,
-            device
+            device,
+            optimizer=None,
     ):
+        logger.info(
+            "Loading checkpoint"
+        )
+
+        if not os.path.exists(path):
+            logger.info(
+                "Checkpoint not found"
+            )
+
+            return 0
+
         checkpoint = torch.load(
             path,
-            map_location=device
+            map_location="cpu"
         )
 
         model.load_state_dict(
@@ -92,4 +106,8 @@ class CheckpointManager:
                 checkpoint["optimizer_state_dict"]
             )
 
-        return checkpoint["epoch"], checkpoint["loss"]
+        logger.info(
+            f"Checkpoint loaded from epoch {checkpoint['epoch'] + 1}"
+        )
+
+        return checkpoint["epoch"] + 1
