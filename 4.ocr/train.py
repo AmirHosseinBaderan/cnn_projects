@@ -1,4 +1,5 @@
 import torch
+import os
 from torch.utils.data import DataLoader
 
 from config import Config
@@ -24,6 +25,10 @@ from trainer.trainer import Trainer
 def train():
     device = torch.device(Config.DEVICE)
 
+    num_cores = os.cpu_count()
+    torch.set_num_threads(num_cores)
+    torch.set_num_interop_threads(4) 
+
     vocab = Vocabulary(
         vocab_file="resources/vocab.json"
     )
@@ -48,6 +53,8 @@ def train():
         num_workers=Config.NUM_WORKERS,
         pin_memory=Config.PIN_MEMORY,
         collate_fn=CTCCollate(),
+        persistent_workers=True,
+        prefetch_factor=Config.PREFETCH_FACTOR,
     )
 
     valid_loader = DataLoader(
@@ -57,6 +64,8 @@ def train():
         num_workers=Config.NUM_WORKERS,
         pin_memory=Config.PIN_MEMORY,
         collate_fn=CTCCollate(),
+        persistent_workers=True,
+        prefetch_factor=Config.PREFETCH_FACTOR,
     )
     model = CRNN(
         num_classes=vocab.num_classes
