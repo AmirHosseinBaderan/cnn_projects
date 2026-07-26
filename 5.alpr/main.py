@@ -1,12 +1,14 @@
 from dataset.detector_dataset import DetectorDataset
 from dataset.parsers import IRLPRXMLParser
 
-from preprocessing.transforms import (
+from preprocessing import (
     Compose,
     Resize,
     ToTensor,
     Normalize
 )
+from torch.utils.data import DataLoader
+from dataset.collate import DetectorCollate
 
 
 dataset = DetectorDataset(
@@ -24,17 +26,17 @@ dataset = DetectorDataset(
     ),
 )
 
-sample = dataset[0]
 
-print(sample["image"].shape)
 
-print(sample["annotation"].image.width)
+loader = DataLoader(
+    dataset,
+    batch_size=4,
+    shuffle=True,
+    collate_fn=DetectorCollate(),
+)
 
-plate = sample["annotation"].first("کل ناحیه پلاک")
+batch = next(iter(loader))
 
-print(plate.bbox)
+print(batch["images"].shape)
 
-print(sample["image"].shape)
-print(sample["image"].dtype)
-print(sample["image"].min())
-print(sample["image"].max())
+print(len(batch["annotations"]))
