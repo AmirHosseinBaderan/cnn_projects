@@ -9,7 +9,8 @@ from preprocessing import (
 )
 from torch.utils.data import DataLoader
 from dataset.collate import DetectorCollate
-
+from models.modules.conv import ConvBlock
+import torch
 
 dataset = DetectorDataset(
     root="data/car_images/train",
@@ -40,3 +41,19 @@ batch = next(iter(loader))
 print(batch["images"].shape)
 
 print(len(batch["annotations"]))
+
+model = ConvBlock(
+    in_channels=3,
+    out_channels=32,
+)
+
+sample = dataset[0]
+
+image = sample["image"]
+
+print(image.shape)
+image = image.unsqueeze(0)
+
+y = model(image)
+
+print(y.shape)
