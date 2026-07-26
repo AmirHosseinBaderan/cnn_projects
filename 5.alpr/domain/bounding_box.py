@@ -42,3 +42,15 @@ class BoundingBox:
             self.width,
             self.height,
         )
+
+    def scale(
+        self,
+        scale_x: float,
+        scale_y: float,
+    ) -> "BoundingBox":
+        return BoundingBox(
+            xmin=round(self.xmin * scale_x),
+            ymin=round(self.ymin * scale_y),
+            xmax=round(self.xmax * scale_x),
+            ymax=round(self.ymax * scale_y),
+        )
