@@ -1,13 +1,16 @@
-from pprint import pprint
+from dataset.detector_dataset import DetectorDataset
+from dataset.parsers import IRLPRXMLParser
 
-from dataset.parsers.ir_lpr_xml_parser import IRLPRXMLParser
 
-parser = IRLPRXMLParser()
-
-annotation = parser.parse(
-    "data/car_images/train/day_00001.xml"
+dataset = DetectorDataset(
+    root="data/car_images/train",
+    parser=IRLPRXMLParser(),
 )
 
-print(annotation.image)
+print(len(dataset))
 
-pprint(annotation.objects)
+sample = dataset[0]
+print(sample)
+
+plate = sample["annotation"].first("کل ناحیه پلاک")
+print(plate)
