@@ -41,11 +41,11 @@ class Trainer:
 
         self.best_loss = float("inf")
 
-    def fit(self):
+    def fit(self, start_epoch=0):
 
         self.model.to(self.device)
 
-        for epoch in range(self.epochs):
+        for epoch in range(start_epoch, self.epochs):
 
             train_metrics = train_one_epoch(
                 model=self.model,

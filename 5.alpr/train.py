@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -19,6 +21,7 @@ from preprocessing import (
 )
 from preprocessing.compose import Compose
 
+from trainer.checkpoint import CheckpointManager
 from trainer.loss import DetectionLoss
 from trainer.logger import TensorBoardLogger
 from trainer.target_encoder import TargetEncoder
@@ -186,6 +189,37 @@ def main():
         log_dir=Config.LOG_DIR,
     )
 
+    checkpoint_manager = CheckpointManager(
+        checkpoint_dir=Config.CHECKPOINT_DIR,
+    )
+
+    start_epoch = 0
+
+    last_checkpoint = Path(
+        Config.CHECKPOINT_DIR,
+        Config.LAST_MODEL_NAME,
+    )
+
+    best_checkpoint = Path(
+        Config.CHECKPOINT_DIR,
+        Config.BEST_MODEL_NAME,
+    )
+
+    if last_checkpoint.exists():
+        start_epoch = CheckpointManager.load(
+            model,
+            last_checkpoint,
+            device,
+            optimizer,
+        )
+    elif best_checkpoint.exists():
+        start_epoch = CheckpointManager.load(
+            model,
+            best_checkpoint,
+            device,
+            optimizer,
+        )
+
     trainer = Trainer(
         model=model,
         train_loader=train_loader,
@@ -196,9 +230,10 @@ def main():
         device=device,
         epochs=Config.EPOCHS,
         logger=tensorboard_logger,
+        checkpoint_manager=checkpoint_manager,
     )
 
-    trainer.fit()
+    trainer.fit(start_epoch=start_epoch)
 
     tensorboard_logger.close()
 
