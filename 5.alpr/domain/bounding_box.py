@@ -3,21 +3,21 @@ from dataclasses import dataclass
 
 @dataclass(slots=True, frozen=True)
 class BoundingBox:
-    xmin: int
-    ymin: int
-    xmax: int
-    ymax: int
+    xmin: float
+    ymin: float
+    xmax: float
+    ymax: float
 
     @property
-    def width(self) -> int:
+    def width(self) -> float:
         return self.xmax - self.xmin
 
     @property
-    def height(self) -> int:
+    def height(self) -> float:
         return self.ymax - self.ymin
 
     @property
-    def area(self) -> int:
+    def area(self) -> float:
         return self.width * self.height
 
     @property
@@ -27,7 +27,7 @@ class BoundingBox:
             (self.ymin + self.ymax) / 2,
         )
 
-    def to_xyxy(self) -> tuple[int, int, int, int]:
+    def to_xyxy(self) -> tuple[float, float, float, float]:
         return (
             self.xmin,
             self.ymin,
@@ -35,7 +35,7 @@ class BoundingBox:
             self.ymax,
         )
 
-    def to_xywh(self) -> tuple[int, int, int, int]:
+    def to_xywh(self) -> tuple[float, float,float,float]:
         return (
             self.xmin,
             self.ymin,
