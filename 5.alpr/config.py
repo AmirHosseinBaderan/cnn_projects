@@ -1,3 +1,5 @@
+import os
+
 import torch
 
 
@@ -26,7 +28,7 @@ class Config:
 
     # DataLoader
     BATCH_SIZE = 8
-    NUM_WORKERS = 4
+    NUM_WORKERS = os.cpu_count() if DEVICE.type == "cpu" else 4
     PIN_MEMORY = torch.cuda.is_available()
 
     # Model

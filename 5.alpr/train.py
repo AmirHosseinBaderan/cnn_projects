@@ -167,6 +167,8 @@ def main():
         shuffle=False,
     )
 
+    logger.info(f"Num Workers: {Config.NUM_WORKERS}")
+
     model = build_model()
 
     optimizer = build_optimizer(
