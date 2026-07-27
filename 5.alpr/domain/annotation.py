@@ -63,3 +63,9 @@ class Annotation:
     @property
     def characters(self) -> list[LabeledObject]:
         return self.exclude_label(Labels.PLATE)
+    
+    def count(
+        self,
+        label: str,
+    ) -> int:
+        return len(self.find_all(label))
