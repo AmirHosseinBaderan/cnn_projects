@@ -30,6 +30,12 @@ class Config:
     BATCH_SIZE = 8
     NUM_WORKERS = os.cpu_count() if DEVICE.type == "cpu" else 4
     PIN_MEMORY = torch.cuda.is_available()
+    PERSISTENT_WORKERS = True if DEVICE.type == "cpu" else False
+
+    # CPU optimizations
+    TORCH_NUM_THREADS = os.cpu_count() if DEVICE.type == "cpu" else 1
+    TORCH_NUM_INTRAOP_THREADS = os.cpu_count() if DEVICE.type == "cpu" else 1
+    TORCH_NUM_INTEROP_THREADS = os.cpu_count() if DEVICE.type == "cpu" else 1
 
     # Model
     NUM_CLASSES = 1

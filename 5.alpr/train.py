@@ -62,6 +62,7 @@ def build_dataloader(dataset, shuffle):
         shuffle=shuffle,
         num_workers=Config.NUM_WORKERS,
         pin_memory=Config.PIN_MEMORY,
+        persistent_workers=Config.PERSISTENT_WORKERS,
         collate_fn=DetectorCollate(),
     )
 
@@ -148,6 +149,12 @@ def smoke_test(
 def main():
 
     device = build_device()
+
+    if device.type == "cpu":
+        torch.set_num_threads(Config.TORCH_NUM_THREADS)
+        torch.set_num_interop_threads(Config.TORCH_NUM_INTEROP_THREADS)
+        logger.info(f"Torch threads: {torch.get_num_threads()}")
+        logger.info(f"Torch interop threads: {torch.get_num_interop_threads()}")
 
     train_dataset = build_dataset(
         Config.TRAIN_DIR,
