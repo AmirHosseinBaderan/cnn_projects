@@ -8,18 +8,18 @@ from trainer.validate import validate
 class Trainer:
 
     def __init__(
-        self,
-        model: nn.Module,
-        train_loader,
-        validation_loader,
-        optimizer: Optimizer,
-        criterion: nn.Module,
-        encoder,
-        device,
-        epochs: int,
-        logger=None,
-        checkpoint_manager=None,
-        scheduler=None,
+            self,
+            model: nn.Module,
+            train_loader,
+            validation_loader,
+            optimizer: Optimizer,
+            criterion: nn.Module,
+            encoder,
+            device,
+            epochs: int,
+            logger=None,
+            checkpoint_manager=None,
+            scheduler=None,
     ):
         self.model = model
 
@@ -43,7 +43,7 @@ class Trainer:
 
         self.model.to(self.device)
 
-        for epoch in range(1, self.epochs + 1):
+        for epoch in range(self.epochs):
 
             train_metrics = train_one_epoch(
                 model=self.model,
@@ -73,7 +73,6 @@ class Trainer:
             )
 
             if self.logger is not None:
-
                 self.logger.log(
                     epoch=epoch,
                     train_metrics=train_metrics,
@@ -89,7 +88,6 @@ class Trainer:
                 )
 
                 if validation_metrics["loss"] < self.best_loss:
-
                     self.best_loss = validation_metrics["loss"]
 
                     self.checkpoint_manager.save_best(
@@ -100,9 +98,9 @@ class Trainer:
 
     @staticmethod
     def _print_metrics(
-        epoch,
-        train_metrics,
-        validation_metrics,
+            epoch,
+            train_metrics,
+            validation_metrics,
     ):
 
         print(
