@@ -7,8 +7,8 @@ class ImageInfo:
 
     folder: str | None = None
 
-    width: int | None = None
+    width: float | None = None
 
-    height: int | None = None
+    height: float | None = None
 
-    depth: int | None = None
+    depth: float | None = None

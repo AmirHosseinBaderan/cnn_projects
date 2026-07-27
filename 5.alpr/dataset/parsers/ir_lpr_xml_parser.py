@@ -59,10 +59,10 @@ class IRLPRXMLParser(AnnotationParser):
         return LabeledObject(
             label=self._text(object_element, "name"),
             bbox=BoundingBox(
-                xmin=self._int(bbox, "xmin"),
-                ymin=self._int(bbox, "ymin"),
-                xmax=self._int(bbox, "xmax"),
-                ymax=self._int(bbox, "ymax"),
+                xmin=self._number(bbox, "xmin"),
+                ymin=self._number(bbox, "ymin"),
+                xmax=self._number(bbox, "xmax"),
+                ymax=self._number(bbox, "ymax"),
             ),
         )
 
@@ -80,17 +80,16 @@ class IRLPRXMLParser(AnnotationParser):
         return value.strip()
 
     @staticmethod
-    def _int(
-        element: ET.Element,
-        tag: str,
-    ) -> int:
-
+    def _number(
+        element,
+        tag,
+    ) -> float:
         value = element.findtext(tag)
 
         if value is None:
-            raise ValueError(f"Missing <{tag}> element.")
+            raise ValueError(f"{tag} not found")
 
-        return int(value)
+        return float(value)
 
     @staticmethod
     def _optional_int(
