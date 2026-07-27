@@ -12,6 +12,9 @@ from dataset.collate import DetectorCollate
 from models.modules.conv import ConvBlock
 import torch
 from models.modules.backbone import Backbone
+from models.modules.head import DetectionHead
+from models.detector import Detector
+from trainer.target_encoder import TargetEncoder
 
 dataset = DetectorDataset(
     root="data/car_images/train",
@@ -67,6 +70,45 @@ x = torch.randn(
     640,
 )
 
+p3, p4, p5 = model(x)
+
+print(p3.shape)
+print(p4.shape)
+print(p5.shape)
+
+head = DetectionHead(
+    in_channels=512,
+    num_classes=1,
+)
+
+x = torch.randn(
+    1,
+    512,
+    20,
+    20,
+)
+
+y = head(x)
+
+print(y.shape)
+
+model = Detector()
+
+x = torch.randn(
+    2,
+    3,
+    640,
+    640,
+)
+
 y = model(x)
 
 print(y.shape)
+
+encoder = TargetEncoder()
+
+target = encoder.encode(sample["annotation"])
+
+print(target["boxes"].shape)
+print(target["objectness"].shape)
+print(target["classes"].shape)
