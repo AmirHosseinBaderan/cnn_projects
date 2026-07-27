@@ -29,17 +29,17 @@ class DetectionLoss(nn.Module):
         target: DetectionTarget,
     ) -> dict[str, torch.Tensor]:
 
-        box_loss = self.compute_box_loss(
+        box_loss = self._box_loss(
             prediction,
             target,
         )
 
-        objectness_loss = self.compute_objectness_loss(
+        objectness_loss = self._objectness_loss(
             prediction,
             target,
         )
 
-        classification_loss = self.compute_classification_loss(
+        classification_loss = self._classification_loss(
             prediction,
             target,
         )
@@ -57,16 +57,16 @@ class DetectionLoss(nn.Module):
             "classification_loss": classification_loss,
         }
 
-    def compute_box_loss(
+    def _box_loss(
         self,
         prediction: DetectionPrediction,
         target: DetectionTarget,
     ) -> torch.Tensor:
 
-        positive_mask = target.objectness == 1
+        positive_mask = target.objectness.bool()
 
         if not positive_mask.any():
-            return prediction.boxes.new_tensor(0.0)
+            return prediction.boxes.sum() * 0
 
         prediction_boxes = prediction.boxes.permute(
             0,
@@ -83,12 +83,15 @@ class DetectionLoss(nn.Module):
             positive_mask
         ]
 
+        assert prediction_boxes.ndim == 2
+        assert prediction_boxes.shape[-1] == 4
+
         return self.box_loss_fn(
             prediction_boxes,
             target_boxes,
         )
 
-    def compute_objectness_loss(
+    def _objectness_loss(
         self,
         prediction: DetectionPrediction,
         target: DetectionTarget,
@@ -99,32 +102,34 @@ class DetectionLoss(nn.Module):
             target.objectness.float(),
         )
 
-    def compute_classification_loss(
+    def _classification_loss(
         self,
         prediction: DetectionPrediction,
         target: DetectionTarget,
     ) -> torch.Tensor:
-    
-        positive_mask = target.objectness == 1
-    
+
+        positive_mask = target.objectness.bool()
+
         if not positive_mask.any():
-            return prediction.classes.new_tensor(0.0)
-    
+            return prediction.classes.sum() * 0
+
         prediction_classes = prediction.classes.permute(
             0,
             2,
             3,
             1,
         )
-    
+
         prediction_classes = prediction_classes[
             positive_mask
         ]
-    
+
         target_classes = target.classes[
             positive_mask
         ]
-    
+
+        assert prediction_classes.ndim == 2
+
         return self.classification_loss_fn(
             prediction_classes,
             target_classes,
