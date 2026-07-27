@@ -25,9 +25,10 @@ def validate(
 
     with torch.no_grad():
 
-        for images, annotations in dataloader:
+        for batch in dataloader:
 
-            images = images.to(device)
+            images = batch["images"].to(device)
+            annotations = batch["annotations"]
 
             target = encoder.encode(
                 annotations
