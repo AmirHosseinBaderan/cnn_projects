@@ -35,7 +35,10 @@ def train_one_epoch(
 
     num_batches = 0
 
-    for batch_idx, (images, annotations) in enumerate(progress_bar, start=1):
+    for batch_idx, batch in enumerate(progress_bar, start=1):
+
+        images = batch["images"]
+        annotations = batch["annotations"]
 
         images = images.to(device)
 
