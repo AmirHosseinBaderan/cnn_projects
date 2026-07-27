@@ -107,8 +107,12 @@ print(y.shape)
 
 encoder = TargetEncoder()
 
-target = encoder.encode(sample["annotation"])
+target = encoder.encode(
+    sample["annotation"],
+)
 
-print(target["boxes"].shape)
-print(target["objectness"].shape)
-print(target["classes"].shape)
+print(target.objectness.sum())
+
+print(torch.nonzero(target.objectness))
+
+print(target.boxes[target.objectness == 1])
