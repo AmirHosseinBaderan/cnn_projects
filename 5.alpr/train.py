@@ -110,7 +110,10 @@ def smoke_test(
     model.to(device)
     model.eval()
 
-    images, annotations = next(iter(dataloader))
+    batch = next(iter(dataloader))
+
+    images = batch["images"]
+    annotations = batch["annotations"]
 
     target = encoder.encode(
         annotations,
