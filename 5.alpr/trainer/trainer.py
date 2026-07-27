@@ -52,6 +52,7 @@ class Trainer:
                 optimizer=self.optimizer,
                 encoder=self.encoder,
                 device=self.device,
+                epoch=epoch,
             )
 
             validation_metrics = validate(

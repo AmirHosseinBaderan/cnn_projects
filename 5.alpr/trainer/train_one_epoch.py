@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
 import torch
+from tqdm import tqdm
 from torch import nn
 from torch.optim import Optimizer
 
@@ -14,6 +15,7 @@ def train_one_epoch(
     optimizer: Optimizer,
     encoder: TargetEncoder,
     device: torch.device,
+    epoch: int,
 ) -> dict[str, float]:
 
     model.train()
@@ -23,9 +25,17 @@ def train_one_epoch(
     total_objectness_loss = 0.0
     total_classification_loss = 0.0
 
+    progress_bar = tqdm(
+        dataloader,
+        desc=f"Train : {epoch+1}",
+        leave=False,
+        dynamic_ncols=True,
+        unit="batch",
+    )
+
     num_batches = 0
 
-    for images, annotations in dataloader:
+    for batch_idx, (images, annotations) in enumerate(progress_bar, start=1):
 
         images = images.to(device)
 
@@ -50,6 +60,19 @@ def train_one_epoch(
         total_classification_loss += losses["classification_loss"].item()
 
         num_batches += 1
+
+        average_loss = total_loss / num_batches
+        average_box_loss = total_box_loss / num_batches
+        average_objectness_loss = total_objectness_loss / num_batches
+        average_classification_loss = total_classification_loss / num_batches
+
+        progress_bar.set_postfix(
+            loss=f"{average_loss:.4f}",
+            box=f"{average_box_loss:.4f}",
+            obj=f"{average_objectness_loss:.4f}",
+            cls=f"{average_classification_loss:.4f}",
+            lr=f"{optimizer.param_groups[0]['lr']:.2e}",
+        )
 
     return {
         "loss": total_loss / num_batches,
