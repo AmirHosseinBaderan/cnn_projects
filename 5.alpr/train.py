@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 
 from config import Config
 
+from utils.logger import logger
+
 from dataset.collate import DetectorCollate
 from dataset.detector_dataset import DetectorDataset
 from dataset.parsers import IRLPRXMLParser
@@ -102,10 +104,9 @@ def smoke_test(
     criterion,
     device,
 ):
-
-    print("=" * 60)
-    print("Running Smoke Test...")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("Running Smoke Test...")
+    logger.info("=" * 60)
 
     model.to(device)
     model.eval()
@@ -128,19 +129,19 @@ def smoke_test(
             target,
         )
 
-    print(f"Images        : {tuple(images.shape)}")
-    print(f"Boxes         : {tuple(prediction.boxes.shape)}")
-    print(f"Objectness    : {tuple(prediction.objectness.shape)}")
-    print(f"Classes       : {tuple(prediction.classes.shape)}")
+    logger.info(f"Images        : {tuple(images.shape)}")
+    logger.info(f"Boxes         : {tuple(prediction.boxes.shape)}")
+    logger.info(f"Objectness    : {tuple(prediction.objectness.shape)}")
+    logger.info(f"Classes       : {tuple(prediction.classes.shape)}")
 
-    print()
+    logger.info("")
 
-    print(f"Loss               : {losses['loss']:.4f}")
-    print(f"Box Loss           : {losses['box_loss']:.4f}")
-    print(f"Objectness Loss    : {losses['objectness_loss']:.4f}")
-    print(f"Classification Loss: {losses['classification_loss']:.4f}")
+    logger.info(f"Loss               : {losses['loss']:.4f}")
+    logger.info(f"Box Loss           : {losses['box_loss']:.4f}")
+    logger.info(f"Objectness Loss    : {losses['objectness_loss']:.4f}")
+    logger.info(f"Classification Loss: {losses['classification_loss']:.4f}")
 
-    print("=" * 60)
+    logger.info("=" * 60)
 
 
 def main():

@@ -1,6 +1,8 @@
 from torch import nn
 from torch.optim import Optimizer
 
+from utils.logger import logger
+
 from trainer.train_one_epoch import train_one_epoch
 from trainer.validate import validate
 
@@ -103,16 +105,7 @@ class Trainer:
             validation_metrics,
     ):
 
-        print(
-            f"Epoch [{epoch}]"
-        )
-
-        print(
-            f"Train Loss: {train_metrics['loss']:.4f}"
-        )
-
-        print(
-            f"Validation Loss: {validation_metrics['loss']:.4f}"
-        )
-
-        print("-" * 60)
+        logger.info(f"Epoch [{epoch}]")
+        logger.info(f"Train Loss: {train_metrics['loss']:.4f}")
+        logger.info(f"Validation Loss: {validation_metrics['loss']:.4f}")
+        logger.info("-" * 60)

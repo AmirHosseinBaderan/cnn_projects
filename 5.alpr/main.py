@@ -1,3 +1,5 @@
+from utils.logger import logger
+
 from dataset.detector_dataset import DetectorDataset
 from dataset.parsers import IRLPRXMLParser
 
@@ -41,9 +43,9 @@ loader = DataLoader(
 
 batch = next(iter(loader))
 
-print(batch["images"].shape)
+logger.info(batch["images"].shape)
 
-print(len(batch["annotations"]))
+logger.info(len(batch["annotations"]))
 
 model = ConvBlock(
     in_channels=3,
@@ -54,12 +56,12 @@ sample = dataset[0]
 
 image = sample["image"]
 
-print(image.shape)
+logger.info(image.shape)
 image = image.unsqueeze(0)
 
 y = model(image)
 
-print(y.shape)
+logger.info(y.shape)
 
 model = Backbone()
 
@@ -72,9 +74,9 @@ x = torch.randn(
 
 p3, p4, p5 = model(x)
 
-print(p3.shape)
-print(p4.shape)
-print(p5.shape)
+logger.info(p3.shape)
+logger.info(p4.shape)
+logger.info(p5.shape)
 
 head = DetectionHead(
     in_channels=512,
@@ -90,7 +92,7 @@ x = torch.randn(
 
 y = head(x)
 
-print(y.shape)
+logger.info(y.shape)
 
 model = Detector()
 
@@ -103,7 +105,7 @@ x = torch.randn(
 
 y = model(x)
 
-print(y.shape)
+logger.info(y.shape)
 
 encoder = TargetEncoder()
 
@@ -111,8 +113,8 @@ target = encoder.encode(
     sample["annotation"],
 )
 
-print(target.objectness.sum())
+logger.info(target.objectness.sum())
 
-print(torch.nonzero(target.objectness))
+logger.info(torch.nonzero(target.objectness))
 
-print(target.boxes[target.objectness == 1])
+logger.info(target.boxes[target.objectness == 1])
