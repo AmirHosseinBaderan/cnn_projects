@@ -13,6 +13,9 @@ class DetectionHead(nn.Module):
     ):
         super().__init__()
 
+        self.num_classes = num_classes
+        self.prediction_channels = 5 + num_classes
+
         self.features = ConvBlock(
             in_channels=in_channels,
             out_channels=in_channels,
@@ -20,7 +23,7 @@ class DetectionHead(nn.Module):
 
         self.predictor = nn.Conv2d(
             in_channels=in_channels,
-            out_channels=5 + num_classes,
+            out_channels=self.prediction_channels,
             kernel_size=1,
         )
 
@@ -29,6 +32,7 @@ class DetectionHead(nn.Module):
         x: torch.Tensor,
     ) -> torch.Tensor:
 
-        x = self.features(x)
+        features = self.features(x)
+        prediction = self.predictor(features)
 
-        return self.predictor(x)
+        return prediction
