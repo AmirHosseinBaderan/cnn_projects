@@ -46,10 +46,10 @@ class Config:
     CLASSIFICATION_LOSS_WEIGHT = 1.0
 
     # Checkpoints
-    CHECKPOINT_DIR = "checkpoints"
+    CHECKPOINT_DIR = "./resources/checkpoints"
 
     BEST_MODEL_NAME = "best.pt"
     LAST_MODEL_NAME = "last.pt"
 
     # TensorBoard
-    LOG_DIR = "runs"
+    LOG_DIR = "./resources/tensorboard"
