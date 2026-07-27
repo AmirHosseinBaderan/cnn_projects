@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 from domain.image_info import ImageInfo
 from domain.labeled_object import LabeledObject
+from domain.labels import Labels
 
 
 @dataclass(slots=True)
@@ -24,7 +25,7 @@ class Annotation:
             for obj in self.objects
         )
 
-    def get_by_label(
+    def find_all(
         self,
         label: str,
     ) -> list[LabeledObject]:
@@ -54,3 +55,11 @@ class Annotation:
                 return obj
 
         return None
+
+    @property
+    def plates(self) -> list[LabeledObject]:
+        return self.find_all(Labels.PLATE)
+
+    @property
+    def characters(self) -> list[LabeledObject]:
+        return self.exclude_label(Labels.PLATE)
