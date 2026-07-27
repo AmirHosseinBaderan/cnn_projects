@@ -20,6 +20,7 @@ from preprocessing import (
 from preprocessing.compose import Compose
 
 from trainer.loss import DetectionLoss
+from trainer.logger import TensorBoardLogger
 from trainer.target_encoder import TargetEncoder
 from trainer.trainer import Trainer
 
@@ -184,6 +185,10 @@ def main():
         device=device,
     )
 
+    tensorboard_logger = TensorBoardLogger(
+        log_dir=Config.LOG_DIR,
+    )
+
     trainer = Trainer(
         model=model,
         train_loader=train_loader,
@@ -193,9 +198,12 @@ def main():
         encoder=encoder,
         device=device,
         epochs=Config.EPOCHS,
+        logger=tensorboard_logger,
     )
 
     trainer.fit()
+
+    tensorboard_logger.close()
 
 
 if __name__ == "__main__":

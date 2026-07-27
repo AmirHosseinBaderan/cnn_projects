@@ -81,6 +81,11 @@ class Trainer:
                     validation_metrics=validation_metrics,
                 )
 
+                self.logger.log_learning_rate(
+                    self.optimizer.param_groups[0]["lr"],
+                    epoch,
+                )
+
             if self.checkpoint_manager is not None:
 
                 self.checkpoint_manager.save_last(
