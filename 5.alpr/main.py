@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from dataset.collate import DetectorCollate
 from models.modules.conv import ConvBlock
 import torch
+from models.modules.backbone import Backbone
 
 dataset = DetectorDataset(
     root="data/car_images/train",
@@ -26,7 +27,6 @@ dataset = DetectorDataset(
         ]
     ),
 )
-
 
 
 loader = DataLoader(
@@ -55,5 +55,18 @@ print(image.shape)
 image = image.unsqueeze(0)
 
 y = model(image)
+
+print(y.shape)
+
+model = Backbone()
+
+x = torch.randn(
+    1,
+    3,
+    640,
+    640,
+)
+
+y = model(x)
 
 print(y.shape)
