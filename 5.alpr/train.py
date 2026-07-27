@@ -34,7 +34,6 @@ def build_parser():
 
 
 def build_transforms():
-
     return Compose([
         Resize(
             width=Config.IMAGE_SIZE,
@@ -46,7 +45,6 @@ def build_transforms():
 
 
 def build_dataset(root):
-
     return DetectorDataset(
         root=root,
         parser=build_parser(),
@@ -55,7 +53,6 @@ def build_dataset(root):
 
 
 def build_dataloader(dataset, shuffle):
-
     return DataLoader(
         dataset,
         batch_size=Config.BATCH_SIZE,
