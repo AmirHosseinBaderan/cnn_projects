@@ -1,7 +1,7 @@
 import os
 
 import torch
-
+from utils.logger import logger
 
 class Config:
 
@@ -27,7 +27,7 @@ class Config:
     TEST_ANNOTATION_DIR = "data/car_images/test/annotations"
 
     # DataLoader
-    BATCH_SIZE = 8
+    BATCH_SIZE = 32
     NUM_WORKERS = os.cpu_count() if DEVICE.type == "cpu" else 4
     PIN_MEMORY = torch.cuda.is_available()
     PERSISTENT_WORKERS = True if DEVICE.type == "cpu" else False
@@ -64,3 +64,12 @@ class Config:
     
     # Early stopping
     PATIENCE = 5
+
+    @classmethod
+    def apply_runtime_settings(cls):
+        """Call once at the start of train.py, before building the DataLoader/model."""
+        if cls.DEVICE.type == "cpu":
+            torch.set_num_threads(Config.TORCH_NUM_THREADS)
+            torch.set_num_interop_threads(Config.TORCH_NUM_INTEROP_THREADS)
+            logger.info(f"Torch threads: {torch.get_num_threads()}")
+            logger.info(f"Torch interop threads: {torch.get_num_interop_threads()}")
