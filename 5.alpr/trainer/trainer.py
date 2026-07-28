@@ -96,11 +96,11 @@ class Trainer:
 
                 if validation_metrics["loss"] < self.best_loss:
                     self.best_loss = validation_metrics["loss"]
-
                     self.checkpoint_manager.save_best(
                         model=self.model,
                         optimizer=self.optimizer,
                         epoch=epoch,
+                        loss=validation_metrics["loss"]
                     )
 
     @staticmethod
