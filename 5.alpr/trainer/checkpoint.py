@@ -71,13 +71,14 @@ class CheckpointManager:
             self.checkpoint_dir / "last.pt",
         )
 
-    @staticmethod
     def load(
+            self,
             model,
             path,
             device,
             optimizer=None,
     ):
+        path = self.checkpoint_dir / path
 
         logger.info("Loading checkpoint")
 
