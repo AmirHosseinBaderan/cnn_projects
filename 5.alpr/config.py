@@ -61,3 +61,6 @@ class Config:
 
     # TensorBoard
     LOG_DIR = "./resources/tensorboard"
+    
+    # Early stopping
+    PATIENCE = 5
