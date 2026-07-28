@@ -4,8 +4,11 @@ import os
 import random
 import matplotlib
 
-# Use non-interactive backend
-matplotlib.use('Agg')
+# Check if we have a display available for interactive plotting
+if os.environ.get('DISPLAY'):
+    matplotlib.use('TkAgg')  # Interactive backend for display
+else:
+    matplotlib.use('Agg')    # Non-interactive backend for headless
 
 import matplotlib.pyplot as plt
 from config import Config
@@ -91,6 +94,13 @@ def main():
     output_path = os.path.join(output_dir, "random_predictions.png")
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     print(f"Results saved to {output_path}")
+    
+    # Show the figure if we have a display
+    if os.environ.get('DISPLAY'):
+        plt.show()
+    else:
+        print("No display available, skipping plt.show()")
+    
     plt.close()
 
 
