@@ -240,6 +240,8 @@ def main():
         epochs=Config.EPOCHS,
         logger=tensorboard_logger,
         checkpoint_manager=checkpoint_manager,
+        scheduler=None,
+        patience=Config.PATIENCE,
     )
 
     trainer.fit(start_epoch=start_epoch)

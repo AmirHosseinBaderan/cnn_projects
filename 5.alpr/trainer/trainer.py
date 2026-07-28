@@ -22,6 +22,7 @@ class Trainer:
             logger=None,
             checkpoint_manager=None,
             scheduler=None,
+            patience: int = 5,
     ):
         self.model = model
 
@@ -38,12 +39,15 @@ class Trainer:
         self.logger = logger
         self.checkpoint_manager = checkpoint_manager
         self.scheduler = scheduler
-
-        self.best_loss = float("inf")
+        self.patience = patience
 
     def fit(self, start_epoch=0):
 
         self.model.to(self.device)
+
+        # Initialize early stopping variables
+        wait = 0  # epochs with no improvement
+        best_loss = float("inf")
 
         for epoch in range(start_epoch, self.epochs):
 
@@ -94,14 +98,20 @@ class Trainer:
                     epoch=epoch,
                 )
 
-                if validation_metrics["loss"] < self.best_loss:
-                    self.best_loss = validation_metrics["loss"]
+                if validation_metrics["loss"] < best_loss:
+                    best_loss = validation_metrics["loss"]
+                    wait = 0  # reset wait counter
                     self.checkpoint_manager.save_best(
                         model=self.model,
                         optimizer=self.optimizer,
                         epoch=epoch,
                         loss=validation_metrics["loss"]
                     )
+                else:
+                    wait += 1
+                    if wait >= self.patience:
+                        self.logger.info(f"Early stopping triggered after {epoch + 1} epochs.")
+                        break
 
     @staticmethod
     def _print_metrics(
