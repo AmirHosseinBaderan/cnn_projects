@@ -120,7 +120,7 @@ class Trainer:
             validation_metrics,
     ):
 
-        logger.info(f"Epoch [{epoch}]")
+        logger.info(f"Epoch [{epoch + 1}]")
         logger.info(f"Train Loss: {train_metrics['loss']:.4f}")
         logger.info(f"Validation Loss: {validation_metrics['loss']:.4f}")
         logger.info("-" * 60)

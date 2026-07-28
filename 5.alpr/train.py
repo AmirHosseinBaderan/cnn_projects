@@ -215,16 +215,16 @@ def main():
     )
 
     if last_checkpoint.exists():
-        start_epoch = CheckpointManager.load(
+        start_epoch = checkpoint_manager.load(
             model,
-            last_checkpoint,
+            Config.LAST_MODEL_NAME,
             device,
             optimizer,
         )
     elif best_checkpoint.exists():
-        start_epoch = CheckpointManager.load(
+        start_epoch = checkpoint_manager.load(
             model,
-            best_checkpoint,
+            Config.BEST_MODEL_NAME,
             device,
             optimizer,
         )
