@@ -1,4 +1,8 @@
 import torch
+from pathlib import Path
+
+import cv2
+import numpy as np
 
 from config import Config
 from dataset.vocabulary import Vocabulary
@@ -70,6 +74,14 @@ class OCREngine:
         self,
         image,
     ) -> str:
+        # Load image if path is provided
+        if isinstance(image, (str, Path)):
+            image = cv2.imread(str(image))
+            if image is None:
+                raise FileNotFoundError(
+                    f"Image not found: {image}"
+                )
+
         # Detect text lines
         lines = self.line_detector.detect(image)
 
