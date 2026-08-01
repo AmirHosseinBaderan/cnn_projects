@@ -5,6 +5,6 @@ ocr = OCREngine(
     vocabulary_file="resources/vocab.json",
 )
 
-text = ocr.predict("data/test/test_5.jpg")
+text = ocr.predict("data/test/images.png")
 
 print(text)
