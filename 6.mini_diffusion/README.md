@@ -50,7 +50,9 @@ The model is trained to minimize the difference between the predicted noise and 
 │   ├── trainer.py               # Training loop logic
 │   └── loss.py                  # (placeholder — loss utilities)
 ├── inference/
-│   └── generator.py             # (placeholder — generation script)
+    │   ├── generator.py       # (placeholder — generation script)
+    │   ├── predictor.py       # Prediction entry point
+    │   └── diffusion_predictor.py  # Full diffusion prediction pipeline
 ├── utils/
 │   ├── logger.py                # Logging setup
 │   └── checkpoint_manager.py    # Save/load model checkpoints
