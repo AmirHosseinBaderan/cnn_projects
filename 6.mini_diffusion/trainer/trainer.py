@@ -19,24 +19,10 @@ class Trainer:
         self.loss_fn = nn.MSELoss()
 
 
-    def train_step(
-        self,
-        batch,
-    ):
-
-        images = batch["image"].to(
-            self.device
-        )
-
-        labels = batch["label"].to(
-            self.device
-        )
-
-
+    def _step(self, batch):
+        images = batch["image"].to(self.device)
+        labels = batch["label"].to(self.device)
         batch_size = images.shape[0]
-
-
-        # random timestep
 
         timesteps = torch.randint(
             0,
@@ -45,35 +31,29 @@ class Trainer:
             device=self.device,
         )
 
+        noisy_images, noise = self.scheduler.add_noise(images, timesteps)
 
-        # add noise
+        predicted_noise = self.model(noisy_images, timesteps, labels)
 
-        noisy_images, noise = self.scheduler.add_noise(
-            images,
-            timesteps,
-        )
+        loss = self.loss_fn(predicted_noise, noise)
 
-
-        # prediction
-
-        predicted_noise = self.model(
-            noisy_images,
-            timesteps,
-            labels,
-        )
+        return loss
 
 
-        loss = self.loss_fn(
-            predicted_noise,
-            noise,
-        )
-
-
+    def train_step(
+        self,
+        batch,
+    ):
+        loss = self._step(batch)
         self.optimizer.zero_grad()
-
         loss.backward()
-
         self.optimizer.step()
+        return loss.item()
 
-
+    def validation_step(
+        self,
+        batch,
+    ):
+        with torch.no_grad():
+            loss = self._step(batch)
         return loss.item()
