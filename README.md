@@ -1,10 +1,10 @@
 # CNN Projects
 
-A comprehensive collection of four deep learning projects focused on computer vision and convolutional neural networks (CNNs). These projects are designed as educational resources for students learning about deep learning, computer vision, and PyTorch.
+A comprehensive collection of five deep learning projects focused on computer vision and convolutional neural networks (CNNs). These projects are designed as educational resources for students learning about deep learning, computer vision, and PyTorch.
 
 ## Projects Overview
 
-This repository contains four progressively advanced projects:
+This repository contains five progressively advanced projects:
 
 | # | Project | Description | Key Concepts |
 | --- |---------|-------------|--------------|
@@ -12,6 +12,7 @@ This repository contains four progressively advanced projects:
 | 2 | [Scene Classification](2.vision-classification/README.md) | Natural scene classification (buildings, forest, glacier, mountain, sea, street) | Custom CNN design, early stopping, learning rate scheduling |
 | 3 | [Face Recognition](3.face_recognition/README.md) | Real-time face recognition system with webcam support | Triplet loss, face embeddings, MTCNN detection, cosine similarity |
 | 4 | [OCR — Scene Text Recognition](4.ocr/README.md) | End-to-end text recognition from images using CRNN and CTC loss | CRNN, CTC loss, BiLSTM, sequence modeling, greedy decoding |
+| 5 | [Mini Diffusion](6.mini_diffusion/README.md) | Denoising diffusion model trained on MNIST from scratch | DDPM, noise scheduling, U-Net, sinusoidal embeddings, conditional generation |
 
 ## Prerequisites
 
@@ -70,7 +71,7 @@ cnn_projects/
         ├── search.py        # Similarity search
         └── ...
 
-└── 4.ocr/                    # Scene Text Recognition (CRNN + CTC)
+├── 4.ocr/                    # Scene Text Recognition (CRNN + CTC)
     ├── config.py            # Hyperparameters
     ├── main.py              # Architecture sanity check
     ├── train.py             # Training script
@@ -102,16 +103,60 @@ cnn_projects/
     └── utils/               # Helpers
         ├── logger.py        # Logging config
         └── visualize.py     # Batch visualization
+
+└── 6.mini_diffusion/        # Denoising Diffusion Model (MNIST)
+    ├── configs/
+    │   └── config.py        # Hyperparameters and device config
+    ├── datasets/
+    │   ├── mnist.py         # Basic MNIST wrapper
+    │   └── diffusion_mnist.py # Diffusion-specific MNIST dataset
+    ├── diffusion/
+    │   ├── beta_scheduler.py  # Linear beta schedule
+    │   ├── noise_scheduler.py # Noise addition scheduler
+    │   ├── forward.py         # Forward process (placeholder)
+    │   ├── reverse.py         # Reverse process (placeholder)
+    │   ├── sampler.py         # Sampling loop (placeholder)
+    │   └── utils.py           # Diffusion utilities (placeholder)
+    ├── models/
+    │   ├── unet.py            # U-Net denoising backbone
+    │   ├── embeddings/
+    │   │   ├── timestep_embedding.py  # Sinusoidal timestep encoding
+    │   │   └── label_embedding.py     # Class label encoding
+    │   └── blocks/
+    │       ├── conv_block.py        # Conv-BN-ReLU building block
+    │       ├── down_block.py        # Encoder down-sampling block
+    │       ├── up_block.py          # Decoder up-sampling block
+    │       ├── bottleneck.py        # Bottleneck with conditional injection
+    │       ├── conditional.py       # Linear conditioning projection
+    │       ├── residual.py          # (placeholder)
+    │       ├── attention.py         # (placeholder)
+    │       ├── down.py              # (placeholder)
+    │       └── up.py                # (placeholder)
+    ├── trainer/
+    │   ├── trainer.py         # Training loop logic
+    │   └── loss.py            # Loss utilities (placeholder)
+    ├── inference/
+    │   ├── generator.py       # Inference/generation script (placeholder)
+    │   ├── predictor.py       # Prediction entry point
+    │   └── diffusion_predictor.py  # Full diffusion prediction pipeline
+    ├── utils/
+    │   ├── logger.py          # Logging setup
+    │   └── checkpoint_manager.py # Save/load checkpoints
+    ├── train.py               # Training entry point
+    ├── predict.py             # Inference entry point (placeholder)
+    └── tests/
+        └── test_forward.py    # Visualize noise addition at various timesteps
 ```
 
 ## Learning Path
 
 We recommend completing the projects in order:
 
-1. **Start with Project 1** - Learn the fundamentals of CNN training, data loading, and evaluation
-2. **Move to Project 2** - Understand custom dataset handling and advanced training techniques
-3. **Continue to Project 3** - Explore metric learning and real-time applications
-4. **Finish with Project 4** - Dive into sequence models, CTC loss, and end-to-end OCR
+1. **Start with Project 1** — Learn the fundamentals of CNN training, data loading, and evaluation
+2. **Move to Project 2** — Understand custom dataset handling and advanced training techniques
+3. **Continue to Project 3** — Explore metric learning and real-time applications
+4. **Finish with Project 4** — Dive into sequence models, CTC loss, and end-to-end OCR
+5. **Complete with Project 5** — Build a denoising diffusion model from scratch and understand the mechanics of generative AI
 
 Each project includes detailed documentation explaining the concepts, implementation details, and how to run the code.
 
