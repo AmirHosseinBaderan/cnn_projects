@@ -17,3 +17,4 @@ class Config:
     PATIENCE = 3
 
     DATA_DIR = Path("data")
+    CHECKPOINT_DIR = 'checkpoints'
