@@ -37,7 +37,10 @@ class DiffusionPredictor:
         self.model.eval()
 
 
-        self.scheduler = NoiseScheduler()
+        self.scheduler = NoiseScheduler(
+            num_timesteps=1000,
+            device=self.device,
+        )
 
 
 

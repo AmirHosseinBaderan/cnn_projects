@@ -5,7 +5,7 @@ from inference.diffusion_predictor import DiffusionPredictor
 
 
 predictor = DiffusionPredictor(
-    checkpoint_path="checkpoints/best.pt"
+    checkpoint_path="checkpoints/last.pt"
 )
 
 while True:

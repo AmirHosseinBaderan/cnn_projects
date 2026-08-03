@@ -7,23 +7,20 @@ class Bottleneck(nn.Module):
 
     def __init__(
         self,
-        channels,
-        condition_dim=64,
+        channels: int,
+        condition_dim: int = 64,
     ):
         super().__init__()
-
-
-        self.block = ConvBlock(
-            channels,
-            channels * 2,
-        )
-
 
         self.condition_projection = nn.Linear(
             condition_dim,
             channels,
         )
 
+        self.block = ConvBlock(
+            channels,
+            channels * 2,
+        )
 
     def forward(
         self,
@@ -31,20 +28,12 @@ class Bottleneck(nn.Module):
         condition,
     ):
 
-        condition = self.condition_projection(
-            condition
-        )
+        condition = self.condition_projection(condition)
 
-
-        condition = condition[
-            :,
-            :,
-            None,
-            None
-        ]
-
+        condition = condition.unsqueeze(-1).unsqueeze(-1)
 
         x = x + condition
 
+        x = self.block(x)
 
-        return self.block(x)
+        return x

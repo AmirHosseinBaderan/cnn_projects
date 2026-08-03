@@ -38,12 +38,21 @@ class UpBlock(nn.Module):
         x = self.up(x)
 
 
+        # برای جلوگیری از اختلاف سایز H,W
+        if x.shape[-2:] != skip.shape[-2:]:
+            x = torch.nn.functional.interpolate(
+                x,
+                size=skip.shape[-2:],
+                mode="nearest",
+            )
+
+
         x = torch.cat(
             [
                 x,
                 skip,
             ],
-            dim=1
+            dim=1,
         )
 
 

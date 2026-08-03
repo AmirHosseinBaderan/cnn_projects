@@ -56,48 +56,21 @@ class NoiseScheduler:
         predicted_noise,
         timestep,
     ):
-        
-        beta = self.betas[timestep]
     
-        alpha = self.alphas[timestep]
-    
-        alpha_bar = self.alpha_bars[timestep]
-    
-    
-        sqrt_recip_alpha = torch.sqrt(
-            1.0 / alpha
-        )
-    
-    
-        sqrt_one_minus_alpha_bar = torch.sqrt(
-            1 - alpha_bar
-        )
-    
+        beta = self.betas[timestep].view(-1, 1, 1, 1)
+        alpha = self.alphas[timestep].view(-1, 1, 1, 1)
+        alpha_bar = self.alpha_bars[timestep].view(-1, 1, 1, 1)
     
         mean = (
-            sqrt_recip_alpha
-            *
-            (
-                x
-                -
-                (
-                    beta
-                    /
-                    sqrt_one_minus_alpha_bar
-                )
-                *
-                predicted_noise
-            )
+            1.0 / torch.sqrt(alpha)
+        ) * (
+            x
+            - (beta / torch.sqrt(1 - alpha_bar))
+            * predicted_noise
         )
     
-    
-        if timestep[0] > 0:
-        
+        if timestep.item() > 0:
             noise = torch.randn_like(x)
-    
-            variance = torch.sqrt(beta)
-    
-            return mean + variance * noise
-    
+            return mean + torch.sqrt(beta) * noise
     
         return mean
