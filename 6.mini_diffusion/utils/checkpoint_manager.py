@@ -45,24 +45,45 @@ class CheckpointManager:
             torch.save(checkpoint, best_path)
             
     def load_checkpoint(self, checkpoint_path):
-        """
-        Load checkpoint.
-        Args:
-            checkpoint_path: path to checkpoint file
-        Returns:
-            epoch: the epoch of the loaded checkpoint
-            val_loss: the validation loss of the loaded checkpoint
-            best_val_loss: the best validation loss up to the loaded checkpoint
-        """
         if not os.path.exists(checkpoint_path):
-            return 0, 0.0, 0.0  # start from epoch 0 if no checkpoint
-        
-        checkpoint = torch.load(checkpoint_path, map_location='cpu')
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        if self.scheduler is not None and 'scheduler_state_dict' in checkpoint:
-            self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            return 0, 0.0, 0.0
+
+        checkpoint = torch.load(
+            checkpoint_path,
+            map_location='cpu'
+        )
+
+        self.model.load_state_dict(
+            checkpoint['model_state_dict']
+        )
+
+        if (
+            self.optimizer is not None
+            and 'optimizer_state_dict' in checkpoint
+        ):
+            self.optimizer.load_state_dict(
+                checkpoint['optimizer_state_dict']
+            )
+
+
+        if (
+            self.scheduler is not None
+            and 'scheduler_state_dict' in checkpoint
+        ):
+            self.scheduler.load_state_dict(
+                checkpoint['scheduler_state_dict']
+            )
+
         epoch = checkpoint['epoch']
-        val_loss = checkpoint.get('val_loss', 0.0)
-        best_val_loss = checkpoint.get('best_val_loss', 0.0)
+
+        val_loss = checkpoint.get(
+            'val_loss',
+            0.0
+        )
+
+        best_val_loss = checkpoint.get(
+            'best_val_loss',
+            0.0
+        )
+
         return epoch, val_loss, best_val_loss

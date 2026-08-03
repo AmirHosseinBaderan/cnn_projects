@@ -4,6 +4,7 @@ from models.unet import UNet
 from diffusion.noise_scheduler import NoiseScheduler
 from configs.config import Config
 from utils.checkpoint_manager import CheckpointManager
+from utils.logger import logger
 
 
 class DiffusionPredictor:
@@ -29,9 +30,10 @@ class DiffusionPredictor:
         )
 
 
-        self.checkpoint_manager.load_checkpoint(
+        epoch,_,_ = self.checkpoint_manager.load_checkpoint(
             checkpoint_path
         )
+        logger.info(f"Model load from epoch : {epoch}")
 
 
         self.model.eval()
