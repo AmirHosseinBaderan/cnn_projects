@@ -21,13 +21,13 @@ train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
 
 train_loader = DataLoader(
     train_dataset,
-    batch_size=64,
+    batch_size=Config.BATCH_SIZE,
     shuffle=True,
 )
 
 val_loader = DataLoader(
     val_dataset,
-    batch_size=64,
+    batch_size=Config.BATCH_SIZE,
     shuffle=False,
 )
 
@@ -56,10 +56,8 @@ checkpoint_manager = CheckpointManager(
 )
 
 # Training parameters
-EPOCHS = 10
 start_epoch = 0
 best_val_loss = float('inf')
-patience = 3  # Number of epochs to wait for improvement before stopping
 epochs_without_improvement = 0
 
 # Try to load latest checkpoint to resume training
@@ -72,7 +70,7 @@ if os.path.exists(latest_checkpoint_path):
     logger.info(f"Resuming training from epoch {start_epoch} with best val loss {best_val_loss:.4f}")
 
 # Training loop
-for epoch in range(start_epoch, EPOCHS):
+for epoch in range(start_epoch, Config.EPOCHS):
     # Training phase
     model.train()
     total_train_loss = 0.0
@@ -80,7 +78,7 @@ for epoch in range(start_epoch, EPOCHS):
     for batch in train_loop:
         loss = trainer.train_step(batch)
         total_train_loss += loss
-        train_loop.set_postfix(loss=loss.item())
+        train_loop.set_postfix(loss=loss)
     
     avg_train_loss = total_train_loss / len(train_loader)
     
@@ -92,7 +90,7 @@ for epoch in range(start_epoch, EPOCHS):
         for batch in val_loop:
             loss = trainer.validation_step(batch)
             total_val_loss += loss
-            val_loop.set_postfix(loss=loss.item())
+            val_loop.set_postfix(loss=loss)
     
     avg_val_loss = total_val_loss / len(val_loader)
     
@@ -112,6 +110,6 @@ for epoch in range(start_epoch, EPOCHS):
     checkpoint_manager.save_checkpoint(epoch, avg_val_loss, is_best=is_best, best_val_loss=best_val_loss)
     
     # Early stopping check
-    if epochs_without_improvement >= patience:
+    if epochs_without_improvement >= Config.PATIENCE:
         logger.info(f"Early stopping triggered after {epochs_without_improvement} epochs without improvement")
         break
