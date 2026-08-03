@@ -16,19 +16,21 @@ class CheckpointManager:
         self.scheduler = scheduler
         os.makedirs(checkpoint_dir, exist_ok=True)
         
-    def save_checkpoint(self, epoch, loss, is_best=False):
+    def save_checkpoint(self, epoch, val_loss, is_best=False, best_val_loss=None):
         """
         Save checkpoint.
         Args:
             epoch: current epoch
-            loss: current loss
+            val_loss: current validation loss
             is_best: whether this is the best model so far
+            best_val_loss: the best validation loss seen so far
         """
         checkpoint = {
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'loss': loss,
+            'val_loss': val_loss,
+            'best_val_loss': best_val_loss if best_val_loss is not None else val_loss,
         }
         if self.scheduler is not None:
             checkpoint['scheduler_state_dict'] = self.scheduler.state_dict()
@@ -49,9 +51,11 @@ class CheckpointManager:
             checkpoint_path: path to checkpoint file
         Returns:
             epoch: the epoch of the loaded checkpoint
+            val_loss: the validation loss of the loaded checkpoint
+            best_val_loss: the best validation loss up to the loaded checkpoint
         """
         if not os.path.exists(checkpoint_path):
-            return 0  # start from epoch 0 if no checkpoint
+            return 0, 0.0, 0.0  # start from epoch 0 if no checkpoint
         
         checkpoint = torch.load(checkpoint_path, map_location='cpu')
         self.model.load_state_dict(checkpoint['model_state_dict'])
@@ -59,5 +63,6 @@ class CheckpointManager:
         if self.scheduler is not None and 'scheduler_state_dict' in checkpoint:
             self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         epoch = checkpoint['epoch']
-        loss = checkpoint.get('loss', 0.0)
-        return epoch, loss
+        val_loss = checkpoint.get('val_loss', 0.0)
+        best_val_loss = checkpoint.get('best_val_loss', 0.0)
+        return epoch, val_loss, best_val_loss
