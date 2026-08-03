@@ -1,21 +1,29 @@
-from torch.utils.data import DataLoader
+import torch
 
-from configs.config import Config
-from datasets.mnist import MNISTDataset
+from diffusion.noise_scheduler import NoiseScheduler
 
 
-dataset = MNISTDataset(
-    root=Config.DATA_DIR,
+scheduler = NoiseScheduler()
+
+
+images = torch.randn(
+    4,
+    1,
+    28,
+    28
 )
 
-loader = DataLoader(
-    dataset,
-    batch_size=Config.BATCH_SIZE,
-    shuffle=True,
+
+timesteps = torch.tensor(
+    [10, 100, 500, 900]
 )
 
-images, labels = next(iter(loader))
 
-print(images.shape)
-print(labels.shape)
-print(labels)
+noisy_images, noise = scheduler.add_noise(
+    images,
+    timesteps
+)
+
+
+print(noisy_images.shape)
+print(noise.shape)
