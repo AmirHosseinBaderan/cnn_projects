@@ -46,10 +46,8 @@ trainer = Trainer(
 )
 
 # Checkpoint setup
-checkpoint_dir = 'checkpoints'
-os.makedirs(checkpoint_dir, exist_ok=True)
 checkpoint_manager = CheckpointManager(
-    checkpoint_dir=checkpoint_dir,
+    checkpoint_dir=Config.CHECKPOINT_DIR,
     model=model,
     optimizer=optimizer,
     scheduler=None  # No PyTorch LR scheduler used
@@ -61,7 +59,7 @@ best_val_loss = float('inf')
 epochs_without_improvement = 0
 
 # Try to load latest checkpoint to resume training
-latest_checkpoint_path = os.path.join(checkpoint_dir, 'last_checkpoint.pt')
+latest_checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, 'last_checkpoint.pt')
 if os.path.exists(latest_checkpoint_path):
     loaded_epoch, loaded_val_loss, loaded_best_val_loss = checkpoint_manager.load_checkpoint(latest_checkpoint_path)
     start_epoch = loaded_epoch + 1  # resume from next epoch
