@@ -136,7 +136,9 @@ cnn_projects/
     │   ├── trainer.py         # Training loop logic
     │   └── loss.py            # Loss utilities (placeholder)
     ├── inference/
-    │   └── generator.py       # Inference/generation script (placeholder)
+    │   ├── generator.py       # Inference/generation script (placeholder)
+    │   ├── predictor.py       # Prediction entry point
+    │   └── diffusion_predictor.py  # Full diffusion prediction pipeline
     ├── utils/
     │   ├── logger.py          # Logging setup
     │   └── checkpoint_manager.py # Save/load checkpoints
