@@ -13,7 +13,7 @@ class Config:
     BATCH_SIZE = 64
     NUM_WORKERS = 4
 
-    EPOCHS = 10
+    EPOCHS = 20
     PATIENCE = 3
 
     DATA_DIR = Path("data")
