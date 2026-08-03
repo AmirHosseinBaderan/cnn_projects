@@ -1,6 +1,7 @@
 import torch
 import os
 from torch.utils.data import DataLoader, random_split
+from tqdm import tqdm
 
 from datasets.diffusion_mnist import DiffusionMNISTDataset
 from diffusion.noise_scheduler import NoiseScheduler
@@ -75,19 +76,23 @@ for epoch in range(start_epoch, EPOCHS):
     # Training phase
     model.train()
     total_train_loss = 0.0
-    for batch in train_loader:
+    train_loop = tqdm(train_loader, desc=f"Epoch {epoch} [Train]", leave=False)
+    for batch in train_loop:
         loss = trainer.train_step(batch)
         total_train_loss += loss
+        train_loop.set_postfix(loss=loss.item())
     
     avg_train_loss = total_train_loss / len(train_loader)
     
     # Validation phase
     model.eval()
     total_val_loss = 0.0
+    val_loop = tqdm(val_loader, desc=f"Epoch {epoch} [Val]", leave=False)
     with torch.no_grad():
-        for batch in val_loader:
+        for batch in val_loop:
             loss = trainer.validation_step(batch)
             total_val_loss += loss
+            val_loop.set_postfix(loss=loss.item())
     
     avg_val_loss = total_val_loss / len(val_loader)
     
